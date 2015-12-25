@@ -31,31 +31,31 @@ type MovieMeta struct {
 func trimSpaces(in chan MovieMeta) chan MovieMeta {
   out := make(chan MovieMeta)
   go func() {
-    m := <-in
+    meta := <-in
     glog.Info("[STAGE] Trim spaces")
 
-    v := reflect.ValueOf(&m).Elem()
-    for fi := 0; fi < v.NumField(); fi++ {
-      f := v.Field(fi)
-      switch f.Interface().(type) {
+    value := reflect.ValueOf(&meta).Elem()
+    for fi := 0; fi < value.NumField(); fi++ {
+      field := value.Field(fi)
+      switch field.Interface().(type) {
       case string:
-        f.SetString(strings.TrimSpace(f.String()))
+        field.SetString(strings.TrimSpace(field.String()))
       case []string:
-        for si := 0; si < f.Len(); si++ {
-          sf := f.Index(si)
-          sf.SetString(strings.TrimSpace(sf.String()))
+        for ei := 0; ei < field.Len(); ei++ {
+          elem := field.Index(ei)
+          elem.SetString(strings.TrimSpace(elem.String()))
         }
       }
     }
 
-    out <- m
+    out <- meta
   }()
   return out
 }
 
 func Search(query string) chan MovieMeta {
-  meta := make(chan MovieMeta)
-  go dmmSearch(query, meta)
-  go javSearch(query, meta)
-  return trimSpaces(meta)
+  metach := make(chan MovieMeta)
+  go dmmSearch(query, metach)
+  go javSearch(query, metach)
+  return trimSpaces(metach)
 }

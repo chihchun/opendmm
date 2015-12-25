@@ -12,29 +12,29 @@ import (
 
 func dmmParseCode(code string) string {
   re := regexp.MustCompile("(?i)([a-z]+)(\\d+)")
-  m := re.FindStringSubmatch(code)
-  if m != nil {
-    return fmt.Sprintf("%s-%s", strings.ToUpper(m[1]), m[2])
+  meta := re.FindStringSubmatch(code)
+  if meta != nil {
+    return fmt.Sprintf("%s-%s", strings.ToUpper(meta[1]), meta[2])
   }
   return code
 }
 
-func dmmParse(urlstr string, meta chan MovieMeta) {
-  glog.Info("[DMM] Parse: ", urlstr)
-  doc, err := newUtf8Document(urlstr)
+func dmmParse(murl string, metach chan MovieMeta) {
+  glog.Info("[DMM] Parse: ", murl)
+  doc, err := newUtf8Document(murl)
   if err != nil {
     glog.Error("[DMM] Error: ", err)
     return
   }
 
-  var m MovieMeta
+  var meta MovieMeta
   var ok bool
-  m.Page = urlstr
-  m.Title = doc.Find("#title").Text()
-  m.ThumbnailImage, ok = doc.Find("#sample-video img").Attr("src")
-  m.CoverImage, ok = doc.Find("#sample-video a").Attr("href")
+  meta.Page = murl
+  meta.Title = doc.Find("#title").Text()
+  meta.ThumbnailImage, ok = doc.Find("#sample-video img").Attr("src")
+  meta.CoverImage, ok = doc.Find("#sample-video a").Attr("href")
   if !ok {
-    m.CoverImage = m.ThumbnailImage
+    meta.CoverImage = meta.ThumbnailImage
   }
   doc.Find("div.page-detail > table > tbody > tr > td > table > tbody > tr").Each(
     func(i int, tr *goquery.Selection) {
@@ -42,63 +42,65 @@ func dmmParse(urlstr string, meta chan MovieMeta) {
       k := td.Text()
       v := td.Next()
       if strings.Contains(k, "配信開始日") {
-        m.ReleaseDate = v.Text()
+        meta.ReleaseDate = v.Text()
       } else if strings.Contains(k, "収録時間") {
-        m.MovieLength = v.Text()
+        meta.MovieLength = v.Text()
       } else if strings.Contains(k, "出演者") {
-        m.Actresses = v.Find("a").Map(
+        meta.Actresses = v.Find("a").Map(
           func(i int, a *goquery.Selection) string {
             return a.Text()
           })
       } else if strings.Contains(k, "監督") {
-        m.Directors = v.Find("a").Map(
+        meta.Directors = v.Find("a").Map(
           func(i int, a *goquery.Selection) string {
             return a.Text()
           })
       } else if strings.Contains(k, "シリーズ") {
-        m.Series = v.Text()
+        meta.Series = v.Text()
       } else if strings.Contains(k, "メーカー") {
-        m.Maker = v.Text()
+        meta.Maker = v.Text()
       } else if strings.Contains(k, "レーベル") {
-        m.Label = v.Text()
+        meta.Label = v.Text()
       } else if strings.Contains(k, "ジャンル") {
-        m.Genres = v.Find("a").Map(
+        meta.Genres = v.Find("a").Map(
           func(i int, a *goquery.Selection) string {
             return a.Text()
           })
       } else if strings.Contains(k, "品番") {
-        m.Code = dmmParseCode(v.Text())
+        meta.Code = dmmParseCode(v.Text())
       }
     })
-  meta <- m
+  metach <- meta
 }
 
-func dmmSearchKeyword(kw string, meta chan MovieMeta) {
+func dmmSearchKeyword(kw string, metach chan MovieMeta) {
   glog.Info("[DMM] Keyword: ", kw)
   urlstr := fmt.Sprintf(
     "http://www.dmm.co.jp/search/=/searchstr=%s",
     url.QueryEscape(kw),
   )
   glog.Info("[DMM] Search: ", urlstr)
-  sdoc, err := newUtf8Document(urlstr)
+  doc, err := newUtf8Document(urlstr)
   if (err != nil) {
     glog.Error("[DMM] Error: ", err)
+    return
   }
 
-  sdoc.Find("#list > li > div > p.tmb > a").Each(func(i int, s *goquery.Selection) {
-    href, ok := s.Attr("href")
-    if ok {
-      go dmmParse(href, meta)
-    }
-  })
+  doc.Find("#list > li > div > p.tmb > a").Each(
+    func(i int, s *goquery.Selection) {
+      href, ok := s.Attr("href")
+      if ok {
+        dmmParse(href, metach)
+      }
+    })
 }
 
-func dmmSearch(q string, meta chan MovieMeta) {
+func dmmSearch(q string, metach chan MovieMeta) {
   glog.Info("[DMM] Query: ", q)
   re := regexp.MustCompile("(?i)([a-z]{2,6})-?(\\d{2,5})")
-  ms := re.FindAllStringSubmatch(q, -1)
-  for _, m := range ms {
-    kw := fmt.Sprintf("%s-%s", m[1], m[2])
-    go dmmSearchKeyword(kw, meta)
+  matches := re.FindAllStringSubmatch(q, -1)
+  for _, match := range matches {
+    kw := fmt.Sprintf("%s-%s", match[1], match[2])
+    go dmmSearchKeyword(kw, metach)
   }
 }
