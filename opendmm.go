@@ -33,27 +33,40 @@ func trimSpaces(in chan MovieMeta) chan MovieMeta {
   out := make(chan MovieMeta)
   go func() {
     defer close(out)
-    meta, ok := <-in
-    if !ok {
-      return
-    }
-    glog.Info("[STAGE] Trim spaces")
+    for meta := range in {
+      glog.Info("[STAGE] Trim spaces")
 
-    value := reflect.ValueOf(&meta).Elem()
-    for fi := 0; fi < value.NumField(); fi++ {
-      field := value.Field(fi)
-      switch field.Interface().(type) {
-      case string:
-        field.SetString(strings.TrimSpace(field.String()))
-      case []string:
-        for ei := 0; ei < field.Len(); ei++ {
-          elem := field.Index(ei)
-          elem.SetString(strings.TrimSpace(elem.String()))
+      value := reflect.ValueOf(&meta).Elem()
+      for fi := 0; fi < value.NumField(); fi++ {
+        field := value.Field(fi)
+        switch field.Interface().(type) {
+        case string:
+          field.SetString(strings.TrimSpace(field.String()))
+        case []string:
+          for ei := 0; ei < field.Len(); ei++ {
+            elem := field.Index(ei)
+            elem.SetString(strings.TrimSpace(elem.String()))
+          }
         }
       }
+      out <- meta
     }
+  }()
+  return out
+}
 
-    out <- meta
+func validateFields(in chan MovieMeta) chan MovieMeta {
+  out := make(chan MovieMeta)
+  go func() {
+    defer close(out)
+    for meta := range in {
+      glog.Info("[STAGE] Validate fields")
+      if meta.Code == "" || meta.Title == "" || meta.CoverImage == "" {
+        glog.Warning("[STAGE] Validate failed")
+      } else {
+        out <- meta
+      }
+    }
   }()
   return out
 }
@@ -75,5 +88,5 @@ func Search(query string) chan MovieMeta {
     wg.Wait()
     close(metach)
   }()
-  return trimSpaces(metach)
+  return validateFields(trimSpaces(metach))
 }
