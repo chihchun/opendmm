@@ -5,6 +5,7 @@ import (
   "net/url"
   "regexp"
   "strings"
+  "sync"
 
   "github.com/golang/glog"
   "github.com/PuerkitoBio/goquery"
@@ -31,7 +32,7 @@ func dmmParse(murl string, metach chan MovieMeta) {
   var ok bool
   meta.Page = murl
   meta.Title = doc.Find("#title").Text()
-  meta.ThumbnailImage, ok = doc.Find("#sample-video img").Attr("src")
+  meta.ThumbnailImage, _ = doc.Find("#sample-video img").Attr("src")
   meta.CoverImage, ok = doc.Find("#sample-video a").Attr("href")
   if !ok {
     meta.CoverImage = meta.ThumbnailImage
@@ -73,7 +74,7 @@ func dmmParse(murl string, metach chan MovieMeta) {
   metach <- meta
 }
 
-func dmmSearchKeyword(kw string, metach chan MovieMeta) {
+func dmmSearchKeyword(kw string, metach chan MovieMeta, wg *sync.WaitGroup) {
   glog.Info("[DMM] Keyword: ", kw)
   urlstr := fmt.Sprintf(
     "http://www.dmm.co.jp/search/=/searchstr=%s",
@@ -90,17 +91,25 @@ func dmmSearchKeyword(kw string, metach chan MovieMeta) {
     func(i int, s *goquery.Selection) {
       href, ok := s.Attr("href")
       if ok {
-        dmmParse(href, metach)
+        wg.Add(1)
+        go func() {
+          defer wg.Done()
+          dmmParse(href, metach)
+        }()
       }
     })
 }
 
-func dmmSearch(q string, metach chan MovieMeta) {
+func dmmSearch(q string, metach chan MovieMeta, wg *sync.WaitGroup) {
   glog.Info("[DMM] Query: ", q)
   re := regexp.MustCompile("(?i)([a-z]{2,6})-?(\\d{2,5})")
   matches := re.FindAllStringSubmatch(q, -1)
   for _, match := range matches {
     kw := fmt.Sprintf("%s-%s", match[1], match[2])
-    go dmmSearchKeyword(kw, metach)
+    wg.Add(1)
+    go func() {
+      defer wg.Done()
+      dmmSearchKeyword(kw, metach, wg)
+    }()
   }
 }

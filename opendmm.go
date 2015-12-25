@@ -3,6 +3,7 @@ package opendmm
 import (
   "reflect"
   "strings"
+  "sync"
 
   "github.com/golang/glog"
 )
@@ -31,7 +32,11 @@ type MovieMeta struct {
 func trimSpaces(in chan MovieMeta) chan MovieMeta {
   out := make(chan MovieMeta)
   go func() {
-    meta := <-in
+    defer close(out)
+    meta, ok := <-in
+    if !ok {
+      return
+    }
     glog.Info("[STAGE] Trim spaces")
 
     value := reflect.ValueOf(&meta).Elem()
@@ -54,8 +59,21 @@ func trimSpaces(in chan MovieMeta) chan MovieMeta {
 }
 
 func Search(query string) chan MovieMeta {
+  var wg sync.WaitGroup
   metach := make(chan MovieMeta)
-  go dmmSearch(query, metach)
-  go javSearch(query, metach)
+  wg.Add(1)
+  go func() {
+    defer wg.Done()
+    dmmSearch(query, metach, &wg)
+  }()
+  wg.Add(1)
+  go func() {
+    defer wg.Done()
+    javSearch(query, metach, &wg)
+  }()
+  go func() {
+    wg.Wait()
+    close(metach)
+  }()
   return trimSpaces(metach)
 }
