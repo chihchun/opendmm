@@ -24,5 +24,6 @@ type MovieMeta struct {
 func Search(query string) chan MovieMeta {
   meta := make(chan MovieMeta)
   go dmmSearch(query, meta)
+  go javSearch(query, meta)
   return meta
 }
