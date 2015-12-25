@@ -4,6 +4,7 @@ import (
   "fmt"
   "net/url"
   "regexp"
+  "strings"
 
   "github.com/golang/glog"
   "github.com/PuerkitoBio/goquery"
@@ -38,7 +39,7 @@ func javParse(urlstr string, meta chan MovieMeta) {
   }
 
   m.Code = doc.Find("#video_id .text").Text()
-  m.Title = doc.Find("#video_title > h3").Text()
+  m.Title = strings.Replace(doc.Find("#video_title > h3").Text(), m.Code, "", -1)
   m.CoverImage, ok = doc.Find("#video_jacket > img").Attr("src")
   m.ReleaseDate = doc.Find("#video_date .text").Text()
   m.MovieLength = doc.Find("#video_length .text").Text()

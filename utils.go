@@ -22,9 +22,9 @@ func newUtf8Document(url string) (*goquery.Document, error) {
   }
   encoding, name, certain := charset.DetermineEncoding(body, "")
   if certain {
-    glog.Infof("[Utils] Encoding of %v is %v", url, name)
+    glog.Infof("[UTILS] Encoding of %v is %v", url, name)
   } else {
-    glog.Infof("[Utils] Guess encoding of %v is %v", url, name)
+    glog.Infof("[UTILS] Guess encoding of %v is %v", url, name)
   }
   utfBody, err := encoding.NewDecoder().Bytes(body)
   if err != nil {
