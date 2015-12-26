@@ -88,8 +88,8 @@ func dmmSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
   }
 
   doc.Find("#list > li > div > p.tmb > a").Each(
-    func(i int, s *goquery.Selection) {
-      href, ok := s.Attr("href")
+    func(i int, a *goquery.Selection) {
+      href, ok := a.Attr("href")
       if ok {
         wg.Add(1)
         go func() {

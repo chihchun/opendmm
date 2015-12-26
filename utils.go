@@ -25,7 +25,12 @@ func newUtf8Document(url string) (*goquery.Document, error) {
   if err != nil {
     return nil, err
   }
-  encoding, name, certain := charset.DetermineEncoding(body, "")
+  rawdoc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
+  if err != nil {
+    return nil, err
+  }
+  contenttype, _ := rawdoc.Find("meta[http-equiv=content-type]").Attr("content")
+  encoding, name, certain := charset.DetermineEncoding(body, contenttype)
   if certain {
     glog.Infof("[UTILS] Encoding of %v is %v", url, name)
   } else {
