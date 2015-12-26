@@ -11,16 +11,16 @@ import (
   "github.com/PuerkitoBio/goquery"
 )
 
-func caribParse(keyword string, urlstr string, metach chan MovieMeta, wg *sync.WaitGroup) {
-  glog.Info("[CARIB] Parse: ", urlstr)
+func caribprParse(keyword string, urlstr string, metach chan MovieMeta, wg *sync.WaitGroup) {
+  glog.Info("[CARIBPR] Parse: ", urlstr)
   doc, err := newUtf8Document(urlstr)
   if err != nil {
-    glog.Error("[CARIB] Error: ", err)
+    glog.Error("[CARIBPR] Error: ", err)
     return
   }
 
   var meta MovieMeta
-  meta.Code = fmt.Sprintf("Carib %s", keyword)
+  meta.Code = fmt.Sprintf("Caribpr %s", keyword)
   meta.Page = urlstr
 
   var urlbase *url.URL
@@ -78,25 +78,25 @@ func caribParse(keyword string, urlstr string, metach chan MovieMeta, wg *sync.W
   metach <- meta
 }
 
-func caribSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
-  glog.Info("[CARIB] Keyword: ", keyword)
+func caribprSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
+  glog.Info("[CARIBPR] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
-    "http://www.caribbeancom.com/moviepages/%s/index.html",
+    "http://www.caribbeancompr.com/moviepages/%s/index.html",
     url.QueryEscape(keyword),
   )
-  caribParse(keyword, urlstr, metach, wg)
+  caribprParse(keyword, urlstr, metach, wg)
 }
 
-func caribSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
-  glog.Info("[CARIB] Query: ", query)
+func caribprSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
+  glog.Info("[CARIBPR] Query: ", query)
   re := regexp.MustCompile("(\\d{6})[-_](\\d{3})")
   matches := re.FindAllStringSubmatch(query, -1)
   for _, match := range matches {
-    keyword := fmt.Sprintf("%s-%s", match[1], match[2])
+    keyword := fmt.Sprintf("%s_%s", match[1], match[2])
     wg.Add(1)
     go func() {
       defer wg.Done()
-      caribSearchKeyword(keyword, metach, wg)
+      caribprSearchKeyword(keyword, metach, wg)
     }()
   }
 }

@@ -89,6 +89,11 @@ func Search(query string) chan MovieMeta {
     defer wg.Done()
     caribSearch(query, metach, &wg)
   }()
+  wg.Add(1)
+  go func() {
+    defer wg.Done()
+    caribprSearch(query, metach, &wg)
+  }()
 
   go func() {
     wg.Wait()
