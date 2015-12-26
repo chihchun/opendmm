@@ -74,11 +74,11 @@ func dmmParse(murl string, metach chan MovieMeta) {
   metach <- meta
 }
 
-func dmmSearchKeyword(kw string, metach chan MovieMeta, wg *sync.WaitGroup) {
-  glog.Info("[DMM] Keyword: ", kw)
+func dmmSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
+  glog.Info("[DMM] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.dmm.co.jp/search/=/searchstr=%s",
-    url.QueryEscape(kw),
+    url.QueryEscape(keyword),
   )
   glog.Info("[DMM] Search: ", urlstr)
   doc, err := newUtf8Document(urlstr)
@@ -100,16 +100,16 @@ func dmmSearchKeyword(kw string, metach chan MovieMeta, wg *sync.WaitGroup) {
     })
 }
 
-func dmmSearch(q string, metach chan MovieMeta, wg *sync.WaitGroup) {
-  glog.Info("[DMM] Query: ", q)
+func dmmSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
+  glog.Info("[DMM] Query: ", query)
   re := regexp.MustCompile("(?i)([a-z]{2,6})-?(\\d{2,5})")
-  matches := re.FindAllStringSubmatch(q, -1)
+  matches := re.FindAllStringSubmatch(query, -1)
   for _, match := range matches {
-    kw := fmt.Sprintf("%s-%s", match[1], match[2])
+    keyword := fmt.Sprintf("%s-%s", match[1], match[2])
     wg.Add(1)
     go func() {
       defer wg.Done()
-      dmmSearchKeyword(kw, metach, wg)
+      dmmSearchKeyword(keyword, metach, wg)
     }()
   }
 }

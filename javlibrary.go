@@ -44,7 +44,7 @@ func javParse(urlstr string, metach chan MovieMeta, wg *sync.WaitGroup) {
       })
     metach <- meta
   } else {
-    base, err := url.Parse(urlstr)
+    urlbase, err := url.Parse(urlstr)
     if err != nil {
       return
     }
@@ -54,40 +54,39 @@ func javParse(urlstr string, metach chan MovieMeta, wg *sync.WaitGroup) {
         if !ok {
           return
         }
-        abshref, err := base.Parse(href)
+        urlhref, err := urlbase.Parse(href)
         if err != nil {
           return
         }
         wg.Add(1)
         go func() {
           defer wg.Done()
-          javParse(abshref.String(), metach, wg)
+          javParse(urlhref.String(), metach, wg)
         }()
       })
     return
   }
-
 }
 
-func javSearchKeyword(kw string, metach chan MovieMeta, wg *sync.WaitGroup) {
-  glog.Info("[JAV] Keyword: ", kw)
+func javSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
+  glog.Info("[JAV] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.javlibrary.com/ja/vl_searchbyid.php?keyword=%s",
-    url.QueryEscape(kw),
+    url.QueryEscape(keyword),
   )
   javParse(urlstr, metach, wg)
 }
 
-func javSearch(q string, metach chan MovieMeta, wg *sync.WaitGroup) {
-  glog.Info("[JAV] Query: ", q)
+func javSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
+  glog.Info("[JAV] Query: ", query)
   re := regexp.MustCompile("(?i)([a-z]{2,6})-?(\\d{2,5})")
-  matches := re.FindAllStringSubmatch(q, -1)
+  matches := re.FindAllStringSubmatch(query, -1)
   for _, match := range matches {
-    kw := fmt.Sprintf("%s-%s", match[1], match[2])
+    keyword := fmt.Sprintf("%s-%s", match[1], match[2])
     wg.Add(1)
     go func() {
       defer wg.Done()
-      javSearchKeyword(kw, metach, wg)
+      javSearchKeyword(keyword, metach, wg)
     }()
   }
 }

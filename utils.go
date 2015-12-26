@@ -2,6 +2,7 @@ package opendmm
 
 import (
   "bytes"
+  "fmt"
   "io/ioutil"
   "net/http"
 
@@ -15,6 +16,10 @@ func newUtf8Document(url string) (*goquery.Document, error) {
   if err != nil {
     return nil, err
   }
+  if res.StatusCode != http.StatusOK {
+    return nil, fmt.Errorf("Unexpected status code %d", res.StatusCode)
+  }
+
   defer res.Body.Close()
   body, err := ioutil.ReadAll(res.Body)
   if err != nil {
