@@ -2,6 +2,7 @@ package opendmm
 
 import (
   "reflect"
+  "regexp"
   "strings"
   "sync"
 
@@ -41,11 +42,17 @@ func trimSpaces(in chan MovieMeta) chan MovieMeta {
         field := value.Field(fi)
         switch field.Interface().(type) {
         case string:
-          field.SetString(strings.TrimSpace(field.String()))
+          str := field.String()
+          str = strings.TrimSpace(str)
+          str = regexp.MustCompile("\\s+").ReplaceAllString(str, " ")
+          field.SetString(str)
         case []string:
           for ei := 0; ei < field.Len(); ei++ {
             elem := field.Index(ei)
-            elem.SetString(strings.TrimSpace(elem.String()))
+            str := elem.String()
+            str = strings.TrimSpace(str)
+            str = regexp.MustCompile("\\s+").ReplaceAllString(str, " ")
+            elem.SetString(str)
           }
         }
       }
@@ -98,6 +105,11 @@ func Search(query string) chan MovieMeta {
   go func() {
     defer wg.Done()
     aveSearch(query, metach, &wg)
+  }()
+  wg.Add(1)
+  go func() {
+    defer wg.Done()
+    heyzoSearch(query, metach, &wg)
   }()
 
   go func() {
