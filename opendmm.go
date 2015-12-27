@@ -30,6 +30,34 @@ type MovieMeta struct {
   Title          string
 }
 
+func deduplicate(in chan MovieMeta) chan MovieMeta {
+  out := make(chan MovieMeta)
+  go func() {
+    defer close(out)
+    for meta := range in {
+      glog.Info("[STAGE] Deduplicate")
+      glog.Infof("[STAGE] Deduplicate: %s", meta.Title)
+      segments := regexp.MustCompile("\\s").Split(meta.Title, -1)
+      for i, segment := range segments {
+        if segment == meta.Code {
+          segments[i] = ""
+        } else {
+          for _, actress := range meta.Actresses {
+            if segment == actress {
+              segments[i] = ""
+              break
+            }
+          }
+        }
+      }
+      meta.Title = strings.Join(segments, " ")
+      glog.Infof("[STAGE] Deduplicate: -> %s", meta.Title)
+      out <- meta
+    }
+  }()
+  return out
+}
+
 func trimSpaces(in chan MovieMeta) chan MovieMeta {
   out := make(chan MovieMeta)
   go func() {
@@ -116,5 +144,5 @@ func Search(query string) chan MovieMeta {
     wg.Wait()
     close(metach)
   }()
-  return validateFields(trimSpaces(metach))
+  return validateFields(trimSpaces(deduplicate(metach)))
 }

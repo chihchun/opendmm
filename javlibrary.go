@@ -4,7 +4,6 @@ import (
   "fmt"
   "net/url"
   "regexp"
-  "strings"
   "sync"
 
   "github.com/golang/glog"
@@ -24,7 +23,7 @@ func javParse(urlstr string, metach chan MovieMeta, wg *sync.WaitGroup) {
   meta.Page, ok = doc.Find("link[rel=shortlink]").Attr("href")
   if ok {
     meta.Code = doc.Find("#video_id .text").Text()
-    meta.Title = strings.Replace(doc.Find("#video_title > h3").Text(), meta.Code, "", -1)
+    meta.Title = doc.Find("#video_title > h3").Text()
     meta.CoverImage, _ = doc.Find("#video_jacket > img").Attr("src")
     meta.ReleaseDate = doc.Find("#video_date .text").Text()
     meta.MovieLength = doc.Find("#video_length .text").Text()
