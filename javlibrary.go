@@ -10,7 +10,7 @@ import (
   "github.com/PuerkitoBio/goquery"
 )
 
-func javParse(urlstr string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func javParse(urlstr string, metach chan MovieMeta) {
   glog.Info("[JAV] Parse: ", urlstr)
   doc, err := newUtf8Document(urlstr)
   if err != nil {
@@ -47,33 +47,25 @@ func javParse(urlstr string, metach chan MovieMeta, wg *sync.WaitGroup) {
     if err != nil {
       return
     }
-    doc.Find("div.videothumblist > div.videos > div.video > a").Each(
-      func(i int, s *goquery.Selection) {
-        href, ok := s.Attr("href")
-        if !ok {
-          return
-        }
-        urlhref, err := urlbase.Parse(href)
-        if err != nil {
-          return
-        }
-        wg.Add(1)
-        go func() {
-          defer wg.Done()
-          javParse(urlhref.String(), metach, wg)
-        }()
-      })
-    return
+    href, ok := doc.Find("div.videothumblist > div.videos > div.video > a").First().Attr("href")
+    if !ok {
+      return
+    }
+    urlhref, err := urlbase.Parse(href)
+    if err != nil {
+      return
+    }
+    javParse(urlhref.String(), metach)
   }
 }
 
-func javSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func javSearchKeyword(keyword string, metach chan MovieMeta) {
   glog.Info("[JAV] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.javlibrary.com/ja/vl_searchbyid.php?keyword=%s",
     url.QueryEscape(keyword),
   )
-  javParse(urlstr, metach, wg)
+  javParse(urlstr, metach)
 }
 
 func javSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
@@ -85,7 +77,7 @@ func javSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
     wg.Add(1)
     go func() {
       defer wg.Done()
-      javSearchKeyword(keyword, metach, wg)
+      javSearchKeyword(keyword, metach)
     }()
   }
 }

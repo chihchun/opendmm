@@ -74,7 +74,7 @@ func dmmParse(murl string, metach chan MovieMeta) {
   metach <- meta
 }
 
-func dmmSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func dmmSearchKeyword(keyword string, metach chan MovieMeta) {
   glog.Info("[DMM] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.dmm.co.jp/search/=/searchstr=%s",
@@ -87,17 +87,10 @@ func dmmSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
     return
   }
 
-  doc.Find("#list > li > div > p.tmb > a").Each(
-    func(i int, a *goquery.Selection) {
-      href, ok := a.Attr("href")
-      if ok {
-        wg.Add(1)
-        go func() {
-          defer wg.Done()
-          dmmParse(href, metach)
-        }()
-      }
-    })
+  href, ok := doc.Find("#list > li > div > p.tmb > a").First().Attr("href")
+  if ok {
+    dmmParse(href, metach)
+  }
 }
 
 func dmmSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
@@ -109,7 +102,7 @@ func dmmSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
     wg.Add(1)
     go func() {
       defer wg.Done()
-      dmmSearchKeyword(keyword, metach, wg)
+      dmmSearchKeyword(keyword, metach)
     }()
   }
 }

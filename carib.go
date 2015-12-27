@@ -11,7 +11,7 @@ import (
   "github.com/PuerkitoBio/goquery"
 )
 
-func caribParse(keyword string, urlstr string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func caribParse(keyword string, urlstr string, metach chan MovieMeta) {
   glog.Info("[CARIB] Parse: ", urlstr)
   doc, err := newUtf8Document(urlstr)
   if err != nil {
@@ -78,13 +78,13 @@ func caribParse(keyword string, urlstr string, metach chan MovieMeta, wg *sync.W
   metach <- meta
 }
 
-func caribSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func caribSearchKeyword(keyword string, metach chan MovieMeta) {
   glog.Info("[CARIB] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.caribbeancom.com/moviepages/%s/index.html",
     url.QueryEscape(keyword),
   )
-  caribParse(keyword, urlstr, metach, wg)
+  caribParse(keyword, urlstr, metach)
 }
 
 func caribSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
@@ -96,7 +96,7 @@ func caribSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
     wg.Add(1)
     go func() {
       defer wg.Done()
-      caribSearchKeyword(keyword, metach, wg)
+      caribSearchKeyword(keyword, metach)
     }()
   }
 }

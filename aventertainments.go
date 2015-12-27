@@ -28,7 +28,6 @@ func aveParse(murl string, metach chan MovieMeta) {
     meta.CoverImage = strings.Replace(meta.CoverImage, "jacket_images", "bigcover", -1)
   }
   meta.Code = strings.Replace(doc.Find("#mini-tabet > div").Text(), "商品番号:", "", -1)
-  //@details.categories  = @html.xpath('//*[@id="TabbedPanels1"]/div/div[2]/div[2]//ol').map(&:text)
   doc.Find("#titlebox > ul > li").Each(
     func(i int, li *goquery.Selection) {
       k := li.Find("span").Text()
@@ -50,7 +49,7 @@ func aveParse(murl string, metach chan MovieMeta) {
   metach <- meta
 }
 
-func aveSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func aveSearchKeyword(keyword string, metach chan MovieMeta) {
   glog.Info("[AVE] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.aventertainments.com/search_Products.aspx?keyword=%s",
@@ -63,17 +62,10 @@ func aveSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
     return
   }
 
-  doc.Find("div.main-unit2 > table a").Each(
-    func(i int, a *goquery.Selection) {
-      href, ok := a.Attr("href")
-      if ok {
-        wg.Add(1)
-        go func() {
-          defer wg.Done()
-          aveParse(href, metach)
-        }()
-      }
-    })
+  href, ok := doc.Find("div.main-unit2 > table a").First().Attr("href")
+  if ok {
+    aveParse(href, metach)
+  }
 }
 
 func aveSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
@@ -85,7 +77,7 @@ func aveSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
     wg.Add(1)
     go func() {
       defer wg.Done()
-      aveSearchKeyword(keyword, metach, wg)
+      aveSearchKeyword(keyword, metach)
     }()
   }
 }

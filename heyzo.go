@@ -11,7 +11,7 @@ import (
   "github.com/PuerkitoBio/goquery"
 )
 
-func heyzoParse(keyword string, urlstr string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func heyzoParse(keyword string, urlstr string, metach chan MovieMeta) {
   glog.Info("[HEYZO] Parse: ", urlstr)
   doc, err := newUtf8Document(urlstr)
   if err != nil {
@@ -57,13 +57,13 @@ func heyzoParse(keyword string, urlstr string, metach chan MovieMeta, wg *sync.W
   metach <- meta
 }
 
-func heyzoSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
   glog.Info("[HEYZO] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.heyzo.com/moviepages/%s/index.html",
     url.QueryEscape(keyword),
   )
-  heyzoParse(keyword, urlstr, metach, wg)
+  heyzoParse(keyword, urlstr, metach)
 }
 
 func heyzoSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
@@ -84,7 +84,7 @@ func heyzoSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
     wg.Add(1)
     go func() {
       defer wg.Done()
-      heyzoSearchKeyword(keyword, metach, wg)
+      heyzoSearchKeyword(keyword, metach)
     }()
   }
 }
