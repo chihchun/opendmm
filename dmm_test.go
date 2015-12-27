@@ -6,5 +6,5 @@ import (
 
 func TestDmm(t *testing.T) {
   queries := []string {"MIDE-029"}
-  testEngine(t, queries, caribprSearch)
+  testEngine(t, queries, dmmSearch)
 }

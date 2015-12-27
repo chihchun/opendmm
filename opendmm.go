@@ -36,7 +36,6 @@ func deduplicate(in chan MovieMeta) chan MovieMeta {
     defer close(out)
     for meta := range in {
       glog.Info("[STAGE] Deduplicate")
-      glog.Infof("[STAGE] Deduplicate: %s", meta.Title)
       segments := regexp.MustCompile("\\s").Split(meta.Title, -1)
       for i, segment := range segments {
         if segment == meta.Code {
@@ -51,7 +50,6 @@ func deduplicate(in chan MovieMeta) chan MovieMeta {
         }
       }
       meta.Title = strings.Join(segments, " ")
-      glog.Infof("[STAGE] Deduplicate: -> %s", meta.Title)
       out <- meta
     }
   }()
@@ -107,41 +105,18 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
 }
 
 func Search(query string) chan MovieMeta {
-  var wg sync.WaitGroup
   metach := make(chan MovieMeta)
-  wg.Add(1)
+  var wgs [](*sync.WaitGroup)
+  wgs = append(wgs, aveSearch(query, metach))
+  wgs = append(wgs, caribSearch(query, metach))
+  wgs = append(wgs, caribprSearch(query, metach))
+  wgs = append(wgs, dmmSearch(query, metach))
+  wgs = append(wgs, heyzoSearch(query, metach))
+  wgs = append(wgs, javSearch(query, metach))
   go func() {
-    defer wg.Done()
-    dmmSearch(query, metach, &wg)
-  }()
-  wg.Add(1)
-  go func() {
-    defer wg.Done()
-    javSearch(query, metach, &wg)
-  }()
-  wg.Add(1)
-  go func() {
-    defer wg.Done()
-    caribSearch(query, metach, &wg)
-  }()
-  wg.Add(1)
-  go func() {
-    defer wg.Done()
-    caribprSearch(query, metach, &wg)
-  }()
-  wg.Add(1)
-  go func() {
-    defer wg.Done()
-    aveSearch(query, metach, &wg)
-  }()
-  wg.Add(1)
-  go func() {
-    defer wg.Done()
-    heyzoSearch(query, metach, &wg)
-  }()
-
-  go func() {
-    wg.Wait()
+    for _, wg := range wgs {
+      wg.Wait()
+    }
     close(metach)
   }()
   return validateFields(trimSpaces(deduplicate(metach)))

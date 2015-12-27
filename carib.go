@@ -87,8 +87,9 @@ func caribSearchKeyword(keyword string, metach chan MovieMeta) {
   caribParse(keyword, urlstr, metach)
 }
 
-func caribSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func caribSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
   glog.Info("[CARIB] Query: ", query)
+  wg := new(sync.WaitGroup)
   re := regexp.MustCompile("(\\d{6})[-_](\\d{3})")
   matches := re.FindAllStringSubmatch(query, -1)
   for _, match := range matches {
@@ -99,4 +100,5 @@ func caribSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
       caribSearchKeyword(keyword, metach)
     }()
   }
+  return wg
 }

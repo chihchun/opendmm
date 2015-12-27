@@ -5,13 +5,16 @@ import (
   "sync"
 )
 
-func testEngine(t *testing.T, queries []string, search func(string, chan MovieMeta, *sync.WaitGroup)) {
+func testEngine(t *testing.T, queries []string, search func(string, chan MovieMeta) *sync.WaitGroup) {
   for _, query := range queries {
-    var wg sync.WaitGroup
     metach := make(chan MovieMeta)
-    search(query, metach, &wg)
-    metach = validateFields(trimSpaces(deduplicate(metach)))
-    meta, ok := <-metach
+    wg := search(query, metach)
+    go func() {
+      wg.Wait()
+      close(metach)
+    }()
+    finalch := validateFields(trimSpaces(deduplicate(metach)))
+    meta, ok := <-finalch
     if !ok {
       t.Error("Not found")
     } else {

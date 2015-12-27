@@ -93,8 +93,9 @@ func dmmSearchKeyword(keyword string, metach chan MovieMeta) {
   }
 }
 
-func dmmSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func dmmSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
   glog.Info("[DMM] Query: ", query)
+  wg := new(sync.WaitGroup)
   re := regexp.MustCompile("(?i)([a-z]{2,6})-?(\\d{2,5})")
   matches := re.FindAllStringSubmatch(query, -1)
   for _, match := range matches {
@@ -105,4 +106,5 @@ func dmmSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
       dmmSearchKeyword(keyword, metach)
     }()
   }
+  return wg
 }

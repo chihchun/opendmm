@@ -66,15 +66,16 @@ func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
   heyzoParse(keyword, urlstr, metach)
 }
 
-func heyzoSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func heyzoSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
   glog.Info("[HEYZO] Query: ", query)
+  wg := new(sync.WaitGroup)
   matched, err := regexp.Match("(?i)heyzo", []byte(query))
   if err != nil {
     glog.Error("[HEYZO] Error: ", err)
-    return
+    return wg
   }
   if !matched {
-    return
+    return wg
   }
 
   re := regexp.MustCompile("\\d{3,4}")
@@ -87,4 +88,5 @@ func heyzoSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
       heyzoSearchKeyword(keyword, metach)
     }()
   }
+  return wg
 }

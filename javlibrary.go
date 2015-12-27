@@ -68,8 +68,9 @@ func javSearchKeyword(keyword string, metach chan MovieMeta) {
   javParse(urlstr, metach)
 }
 
-func javSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func javSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
   glog.Info("[JAV] Query: ", query)
+  wg := new(sync.WaitGroup)
   re := regexp.MustCompile("(?i)([a-z]{2,6})-?(\\d{2,5})")
   matches := re.FindAllStringSubmatch(query, -1)
   for _, match := range matches {
@@ -80,4 +81,5 @@ func javSearch(query string, metach chan MovieMeta, wg *sync.WaitGroup) {
       javSearchKeyword(keyword, metach)
     }()
   }
+  return wg
 }
