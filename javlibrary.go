@@ -4,13 +4,14 @@ import (
   "fmt"
   "net/url"
   "regexp"
+  "strings"
   "sync"
 
   "github.com/golang/glog"
   "github.com/PuerkitoBio/goquery"
 )
 
-func javParse(urlstr string, metach chan MovieMeta) {
+func javParse(urlstr string, keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
   glog.Info("[JAV] Parse: ", urlstr)
   doc, err := newUtf8Document(urlstr)
   if err != nil {
@@ -41,31 +42,43 @@ func javParse(urlstr string, metach chan MovieMeta) {
       func(i int, span *goquery.Selection) string {
         return span.Text()
       })
-    metach <- meta
+
+    if strings.TrimSpace(meta.Code) != keyword {
+      glog.Errorf("[JAV] Error: Expected %s, got %s", keyword, meta.Code)
+    } else {
+      metach <- meta
+    }
   } else {
     urlbase, err := url.Parse(urlstr)
     if err != nil {
       return
     }
-    href, ok := doc.Find("div.videothumblist > div.videos > div.video > a").First().Attr("href")
-    if !ok {
-      return
-    }
-    urlhref, err := urlbase.Parse(href)
-    if err != nil {
-      return
-    }
-    javParse(urlhref.String(), metach)
+    doc.Find("div.videothumblist > div.videos > div.video > a").Each(
+      func(i int, a *goquery.Selection) {
+        href, ok := a.Attr("href")
+        if !ok {
+          return
+        }
+        urlhref, err := urlbase.Parse(href)
+        if err != nil {
+          return
+        }
+        wg.Add(1)
+        go func() {
+          defer wg.Done()
+          javParse(urlhref.String(), keyword, metach, wg)
+        }()
+      })
   }
 }
 
-func javSearchKeyword(keyword string, metach chan MovieMeta) {
+func javSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
   glog.Info("[JAV] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.javlibrary.com/ja/vl_searchbyid.php?keyword=%s",
     url.QueryEscape(keyword),
   )
-  javParse(urlstr, metach)
+  javParse(urlstr, keyword, metach, wg)
 }
 
 func javSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
@@ -74,11 +87,11 @@ func javSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
   re := regexp.MustCompile("(?i)([a-z]{2,6})-?(\\d{2,5})")
   matches := re.FindAllStringSubmatch(query, -1)
   for _, match := range matches {
-    keyword := fmt.Sprintf("%s-%s", match[1], match[2])
+    keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
     wg.Add(1)
     go func() {
       defer wg.Done()
-      javSearchKeyword(keyword, metach)
+      javSearchKeyword(keyword, metach, wg)
     }()
   }
   return wg

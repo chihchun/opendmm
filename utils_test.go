@@ -5,7 +5,7 @@ import (
   "sync"
 )
 
-func testEngine(t *testing.T, queries []string, search func(string, chan MovieMeta) *sync.WaitGroup) {
+func assertSearchable(t *testing.T, queries []string, search func(string, chan MovieMeta) *sync.WaitGroup) {
   for _, query := range queries {
     metach := make(chan MovieMeta)
     wg := search(query, metach)
@@ -15,9 +15,24 @@ func testEngine(t *testing.T, queries []string, search func(string, chan MovieMe
     }()
     meta, ok := <-validateFields(trimSpaces(deduplicate(metach)))
     if !ok {
-      t.Error("Not found")
+      t.Errorf("%s not found", query)
     } else {
-      t.Logf("%+v", meta)
+      t.Logf("%s -> %+v", query, meta)
+    }
+  }
+}
+
+func assertUnsearchable(t *testing.T, queries []string, search func(string, chan MovieMeta) *sync.WaitGroup) {
+  for _, query := range queries {
+    metach := make(chan MovieMeta)
+    wg := search(query, metach)
+    go func() {
+      wg.Wait()
+      close(metach)
+    }()
+    meta, ok := <-validateFields(trimSpaces(deduplicate(metach)))
+    if ok {
+      t.Error("Unexpected: %s -> %+v", query, meta)
     }
   }
 }

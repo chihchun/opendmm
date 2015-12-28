@@ -11,7 +11,7 @@ import (
   "github.com/PuerkitoBio/goquery"
 )
 
-func aveParse(murl string, metach chan MovieMeta) {
+func aveParse(murl string, keyword string, metach chan MovieMeta) {
   glog.Info("[AVE] Parse: ", murl)
   doc, err := newUtf8Document(murl)
   if err != nil {
@@ -46,10 +46,15 @@ func aveParse(murl string, metach chan MovieMeta) {
         meta.MovieLength = li.Text()
       }
     })
-  metach <- meta
+
+  if strings.TrimSpace(meta.Code) != keyword {
+    glog.Errorf("[AVE] Error: Expected %s, got %s", keyword, meta.Code)
+  } else {
+    metach <- meta
+  }
 }
 
-func aveSearchKeyword(keyword string, metach chan MovieMeta) {
+func aveSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
   glog.Info("[AVE] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.aventertainments.com/search_Products.aspx?keyword=%s",
@@ -62,23 +67,30 @@ func aveSearchKeyword(keyword string, metach chan MovieMeta) {
     return
   }
 
-  href, ok := doc.Find("div.main-unit2 > table a").First().Attr("href")
-  if ok {
-    aveParse(href, metach)
-  }
+  doc.Find("div.main-unit2 > table a").Each(
+    func(i int, a *goquery.Selection) {
+      href, ok := a.Attr("href")
+      if ok {
+        wg.Add(1)
+        go func() {
+          defer wg.Done()
+          aveParse(href, keyword, metach)
+        }()
+      }
+    })
 }
 
 func aveSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
   glog.Info("[AVE] Query: ", query)
   wg := new(sync.WaitGroup)
-  re := regexp.MustCompile("(?i)([a-z]{2,6})-?(\\d{2,5})")
+  re := regexp.MustCompile("(?i)([a-z2-3]{2,7})-?(\\d{2,5})")
   matches := re.FindAllStringSubmatch(query, -1)
   for _, match := range matches {
-    keyword := fmt.Sprintf("%s-%s", match[1], match[2])
+    keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
     wg.Add(1)
     go func() {
       defer wg.Done()
-      aveSearchKeyword(keyword, metach)
+      aveSearchKeyword(keyword, metach, wg)
     }()
   }
   return wg

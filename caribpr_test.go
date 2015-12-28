@@ -6,5 +6,5 @@ import (
 
 func TestCaribpr(t *testing.T) {
   queries := []string {"Caribpr 031513_530"}
-  testEngine(t, queries, caribprSearch)
+  assertSearchable(t, queries, caribprSearch)
 }
