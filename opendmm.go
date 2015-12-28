@@ -113,6 +113,7 @@ func Search(query string) chan MovieMeta {
   wgs = append(wgs, dmmSearch(query, metach))
   wgs = append(wgs, heyzoSearch(query, metach))
   wgs = append(wgs, javSearch(query, metach))
+  wgs = append(wgs, tkhSearch(query, metach))
   go func() {
     for _, wg := range wgs {
       wg.Wait()

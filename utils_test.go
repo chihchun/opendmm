@@ -13,8 +13,7 @@ func testEngine(t *testing.T, queries []string, search func(string, chan MovieMe
       wg.Wait()
       close(metach)
     }()
-    finalch := validateFields(trimSpaces(deduplicate(metach)))
-    meta, ok := <-finalch
+    meta, ok := <-validateFields(trimSpaces(deduplicate(metach)))
     if !ok {
       t.Error("Not found")
     } else {
