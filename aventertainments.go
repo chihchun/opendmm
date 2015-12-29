@@ -8,12 +8,13 @@ import (
   "sync"
 
   "github.com/golang/glog"
+  "github.com/junz/utfhttp"
   "github.com/PuerkitoBio/goquery"
 )
 
 func aveParse(murl string, keyword string, metach chan MovieMeta) {
   glog.Info("[AVE] Parse: ", murl)
-  doc, err := newUtf8Document(murl)
+  doc, err := utfhttp.GetDocument(murl)
   if err != nil {
     glog.Error("[AVE] Error: ", err)
     return
@@ -61,7 +62,7 @@ func aveSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
     url.QueryEscape(keyword),
   )
   glog.Info("[AVE] Search: ", urlstr)
-  doc, err := newUtf8Document(urlstr)
+  doc, err := utfhttp.GetDocument(urlstr)
   if (err != nil) {
     glog.Error("[AVE] Error: ", err)
     return

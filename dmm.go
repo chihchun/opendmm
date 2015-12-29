@@ -8,6 +8,7 @@ import (
   "sync"
 
   "github.com/golang/glog"
+  "github.com/junz/utfhttp"
   "github.com/PuerkitoBio/goquery"
 )
 
@@ -22,7 +23,7 @@ func dmmParseCode(code string) string {
 
 func dmmParse(murl string, keyword string, metach chan MovieMeta) {
   glog.Info("[DMM] Parse: ", murl)
-  doc, err := newUtf8Document(murl)
+  doc, err := utfhttp.GetDocument(murl)
   if err != nil {
     glog.Error("[DMM] Error: ", err)
     return
@@ -86,7 +87,7 @@ func dmmSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
     url.QueryEscape(keyword),
   )
   glog.Info("[DMM] Search: ", urlstr)
-  doc, err := newUtf8Document(urlstr)
+  doc, err := utfhttp.GetDocument(urlstr)
   if (err != nil) {
     glog.Error("[DMM] Error: ", err)
     return

@@ -8,12 +8,13 @@ import (
   "sync"
 
   "github.com/golang/glog"
+  "github.com/junz/utfhttp"
   "github.com/PuerkitoBio/goquery"
 )
 
 func caribprParse(keyword string, urlstr string, metach chan MovieMeta) {
   glog.Info("[CARIBPR] Parse: ", urlstr)
-  doc, err := newUtf8Document(urlstr)
+  doc, err := utfhttp.GetDocument(urlstr)
   if err != nil {
     glog.Error("[CARIBPR] Error: ", err)
     return

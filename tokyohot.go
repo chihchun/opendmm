@@ -8,6 +8,7 @@ import (
   "sync"
 
   "github.com/golang/glog"
+  "github.com/junz/utfhttp"
   "github.com/PuerkitoBio/goquery"
 )
 
@@ -22,7 +23,7 @@ func tkhParseCode(code string) string {
 
 func tkhParse(murl string, metach chan MovieMeta) {
   glog.Info("[TKH] Parse: ", murl)
-  doc, err := newUtf8Document(murl)
+  doc, err := utfhttp.GetDocument(murl)
   if err != nil {
     glog.Error("[TKH] Error: ", err)
     return
@@ -71,7 +72,7 @@ func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
     url.QueryEscape(keyword),
   )
   glog.Info("[TKH] Search: ", urlstr)
-  doc, err := newUtf8Document(urlstr)
+  doc, err := utfhttp.GetDocument(urlstr)
   if (err != nil) {
     glog.Error("[TKH] Error: ", err)
     return
