@@ -8,7 +8,7 @@ import (
   "sync"
 
   "github.com/golang/glog"
-  "github.com/junz/utfhttp"
+  "github.com/junzh0u/utfhttp"
   "github.com/PuerkitoBio/goquery"
 )
 
