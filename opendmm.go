@@ -95,7 +95,7 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
     for meta := range in {
       glog.Info("[STAGE] Validate fields")
       if meta.Code == "" || meta.Title == "" || meta.CoverImage == "" {
-        glog.Warning("[STAGE] Validate failed")
+        glog.Warning("[STAGE] Validate failed: ", meta)
       } else {
         out <- meta
       }

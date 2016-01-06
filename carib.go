@@ -13,10 +13,10 @@ import (
 )
 
 func caribParse(keyword string, urlstr string, metach chan MovieMeta) {
-  glog.Info("[CARIB] Parse: ", urlstr)
+  glog.Info("[CARIB] Product page: ", urlstr)
   doc, err := utfhttp.GetDocument(urlstr)
   if err != nil {
-    glog.Error("[CARIB] Error: ", err)
+    glog.Errorf("[CARIB] Error parsing %s: %v", urlstr, err)
     return
   }
 

@@ -21,16 +21,16 @@ func tkhParseCode(code string) string {
   return code
 }
 
-func tkhParse(murl string, metach chan MovieMeta) {
-  glog.Info("[TKH] Parse: ", murl)
-  doc, err := utfhttp.GetDocument(murl)
+func tkhParse(urlstr string, metach chan MovieMeta) {
+  glog.Info("[TKH] Product page: ", urlstr)
+  doc, err := utfhttp.GetDocument(urlstr)
   if err != nil {
-    glog.Error("[TKH] Error: ", err)
+    glog.Errorf("[TKH] Error parsing %s: %v", urlstr, err)
     return
   }
 
   var meta MovieMeta
-  meta.Page = murl
+  meta.Page = urlstr
   meta.Title = doc.Find("#container > div.pagetitle > h2").Text()
   meta.CoverImage, _ = doc.Find("#container > div.movie.cf > div.in > div.flowplayer > video").Attr("poster")
   meta.SampleImages = doc.Find("#main > div.contents > div.scap > a, #main > div.contents > div.vcap > a").Map(
@@ -71,10 +71,10 @@ func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
     "http://www.tokyo-hot.com/product/?q=%s",
     url.QueryEscape(keyword),
   )
-  glog.Info("[TKH] Search: ", urlstr)
+  glog.Info("[TKH] Search page: ", urlstr)
   doc, err := utfhttp.GetDocument(urlstr)
   if (err != nil) {
-    glog.Error("[TKH] Error: ", err)
+    glog.Errorf("[TKH] Error parsing %s: %v", urlstr, err)
     return
   }
 

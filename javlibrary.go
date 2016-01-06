@@ -13,10 +13,10 @@ import (
 )
 
 func javParse(urlstr string, keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
-  glog.Info("[JAV] Parse: ", urlstr)
+  glog.Info("[JAV] Product/Search page: ", urlstr)
   doc, err := utfhttp.GetDocument(urlstr)
   if err != nil {
-    glog.Error("[JAV] Error: ", err)
+    glog.Errorf("[JAV] Error parsing %s: %v", urlstr, err)
     return
   }
 
@@ -45,7 +45,7 @@ func javParse(urlstr string, keyword string, metach chan MovieMeta, wg *sync.Wai
       })
 
     if strings.TrimSpace(meta.Code) != keyword {
-      glog.Errorf("[JAV] Error: Expected %s, got %s", keyword, meta.Code)
+      glog.Warningf("[JAV] Code mismatch: Expected %s, got %s", keyword, meta.Code)
     } else {
       metach <- meta
     }

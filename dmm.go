@@ -21,17 +21,17 @@ func dmmParseCode(code string) string {
   return code
 }
 
-func dmmParse(murl string, keyword string, metach chan MovieMeta) {
-  glog.Info("[DMM] Parse: ", murl)
-  doc, err := utfhttp.GetDocument(murl)
+func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
+  glog.Info("[DMM] Prduct page: ", urlstr)
+  doc, err := utfhttp.GetDocument(urlstr)
   if err != nil {
-    glog.Error("[DMM] Error: ", err)
+    glog.Errorf("[DMM] Error parsing %s: %v", urlstr, err)
     return
   }
 
   var meta MovieMeta
   var ok bool
-  meta.Page = murl
+  meta.Page = urlstr
   meta.Title = doc.Find("#title").Text()
   meta.ThumbnailImage, _ = doc.Find("#sample-video img").Attr("src")
   meta.CoverImage, ok = doc.Find("#sample-video a").Attr("href")
@@ -74,7 +74,7 @@ func dmmParse(murl string, keyword string, metach chan MovieMeta) {
     })
 
   if strings.TrimSpace(meta.Code) != keyword {
-    glog.Errorf("[DMM] Error: Expected %s, got %s", keyword, meta.Code)
+    glog.Warningf("[DMM] Code mismatch: Expected %s, got %s", keyword, meta.Code)
   } else {
     metach <- meta
   }
@@ -86,10 +86,10 @@ func dmmSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
     "http://www.dmm.co.jp/search/=/searchstr=%s",
     url.QueryEscape(keyword),
   )
-  glog.Info("[DMM] Search: ", urlstr)
+  glog.Info("[DMM] Search page: ", urlstr)
   doc, err := utfhttp.GetDocument(urlstr)
   if (err != nil) {
-    glog.Error("[DMM] Error: ", err)
+    glog.Errorf("[DMM] Error parsing %s: %v", err)
     return
   }
 

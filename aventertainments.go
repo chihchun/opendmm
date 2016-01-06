@@ -13,10 +13,10 @@ import (
 )
 
 func aveParse(murl string, keyword string, metach chan MovieMeta) {
-  glog.Info("[AVE] Parse: ", murl)
+  glog.Info("[AVE] Product page: ", murl)
   doc, err := utfhttp.GetDocument(murl)
   if err != nil {
-    glog.Error("[AVE] Error: ", err)
+    glog.Errorf("[AVE] Error parsing %s: %v", murl, err)
     return
   }
 
@@ -49,7 +49,7 @@ func aveParse(murl string, keyword string, metach chan MovieMeta) {
     })
 
   if strings.TrimSpace(meta.Code) != keyword {
-    glog.Errorf("[AVE] Error: Expected %s, got %s", keyword, meta.Code)
+    glog.Warningf("[AVE] Code mismatch: Expected %s, got %s", keyword, meta.Code)
   } else {
     metach <- meta
   }
@@ -61,10 +61,10 @@ func aveSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
     "http://www.aventertainments.com/search_Products.aspx?keyword=%s",
     url.QueryEscape(keyword),
   )
-  glog.Info("[AVE] Search: ", urlstr)
+  glog.Info("[AVE] Search page: ", urlstr)
   doc, err := utfhttp.GetDocument(urlstr)
   if (err != nil) {
-    glog.Error("[AVE] Error: ", err)
+    glog.Errorf("[AVE] Error parsing %s: %v", urlstr, err)
     return
   }
 

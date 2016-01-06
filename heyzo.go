@@ -13,10 +13,10 @@ import (
 )
 
 func heyzoParse(keyword string, urlstr string, metach chan MovieMeta) {
-  glog.Info("[HEYZO] Parse: ", urlstr)
+  glog.Info("[HEYZO] Product page: ", urlstr)
   doc, err := utfhttp.GetDocument(urlstr)
   if err != nil {
-    glog.Error("[HEYZO] Error: ", err)
+    glog.Errorf("[HEYZO] Error parsing %s: %v", urlstr, err)
     return
   }
 
@@ -70,11 +70,7 @@ func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
 func heyzoSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
   glog.Info("[HEYZO] Query: ", query)
   wg := new(sync.WaitGroup)
-  matched, err := regexp.Match("(?i)heyzo", []byte(query))
-  if err != nil {
-    glog.Error("[HEYZO] Error: ", err)
-    return wg
-  }
+  matched, _ := regexp.Match("(?i)heyzo", []byte(query))
   if !matched {
     return wg
   }
