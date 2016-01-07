@@ -8,13 +8,12 @@ import (
   "sync"
 
   "github.com/golang/glog"
-  "github.com/junzh0u/utfhttp"
   "github.com/PuerkitoBio/goquery"
 )
 
 func javParse(urlstr string, keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
   glog.Info("[JAV] Product/Search page: ", urlstr)
-  doc, err := utfhttp.GetDocument(urlstr)
+  doc, err := httpGetDocumentInUTF8(urlstr)
   if err != nil {
     glog.Errorf("[JAV] Error parsing %s: %v", urlstr, err)
     return

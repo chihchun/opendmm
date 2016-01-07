@@ -8,13 +8,12 @@ import (
   "sync"
 
   "github.com/golang/glog"
-  "github.com/junzh0u/utfhttp"
   "github.com/PuerkitoBio/goquery"
 )
 
 func heyzoParse(keyword string, urlstr string, metach chan MovieMeta) {
   glog.Info("[HEYZO] Product page: ", urlstr)
-  doc, err := utfhttp.GetDocument(urlstr)
+  doc, err := httpGetDocumentInUTF8(urlstr)
   if err != nil {
     glog.Errorf("[HEYZO] Error parsing %s: %v", urlstr, err)
     return

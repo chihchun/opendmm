@@ -8,21 +8,20 @@ import (
   "sync"
 
   "github.com/golang/glog"
-  "github.com/junzh0u/utfhttp"
   "github.com/PuerkitoBio/goquery"
 )
 
-func aveParse(murl string, keyword string, metach chan MovieMeta) {
-  glog.Info("[AVE] Product page: ", murl)
-  doc, err := utfhttp.GetDocument(murl)
+func aveParse(urlstr string, keyword string, metach chan MovieMeta) {
+  glog.Info("[AVE] Product page: ", urlstr)
+  doc, err := httpGetDocumentInUTF8(urlstr)
   if err != nil {
-    glog.Errorf("[AVE] Error parsing %s: %v", murl, err)
+    glog.Errorf("[AVE] Error parsing %s: %v", urlstr, err)
     return
   }
 
   var meta MovieMeta
   var ok bool
-  meta.Page = murl
+  meta.Page = urlstr
   meta.Title = doc.Find("#mini-tabet > h2").Text()
   meta.CoverImage, ok = doc.Find("#titlebox > div.list-cover > img").Attr("src")
   if ok {
@@ -62,7 +61,7 @@ func aveSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
     url.QueryEscape(keyword),
   )
   glog.Info("[AVE] Search page: ", urlstr)
-  doc, err := utfhttp.GetDocument(urlstr)
+  doc, err := httpGetDocumentInUTF8(urlstr)
   if (err != nil) {
     glog.Errorf("[AVE] Error parsing %s: %v", urlstr, err)
     return

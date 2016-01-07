@@ -8,7 +8,6 @@ import (
   "sync"
 
   "github.com/golang/glog"
-  "github.com/junzh0u/utfhttp"
   "github.com/PuerkitoBio/goquery"
 )
 
@@ -23,7 +22,7 @@ func dmmParseCode(code string) string {
 
 func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
   glog.Info("[DMM] Prduct page: ", urlstr)
-  doc, err := utfhttp.GetDocument(urlstr)
+  doc, err := httpGetDocumentInUTF8(urlstr)
   if err != nil {
     glog.Errorf("[DMM] Error parsing %s: %v", urlstr, err)
     return
@@ -87,7 +86,7 @@ func dmmSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
     url.QueryEscape(keyword),
   )
   glog.Info("[DMM] Search page: ", urlstr)
-  doc, err := utfhttp.GetDocument(urlstr)
+  doc, err := httpGetDocumentInUTF8(urlstr)
   if (err != nil) {
     glog.Errorf("[DMM] Error parsing %s: %v", err)
     return
