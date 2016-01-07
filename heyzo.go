@@ -2,6 +2,7 @@ package opendmm
 
 import (
   "fmt"
+  "net/http"
   "net/url"
   "regexp"
   "strings"
@@ -13,9 +14,9 @@ import (
 
 func heyzoParse(keyword string, urlstr string, metach chan MovieMeta) {
   glog.Info("[HEYZO] Product page: ", urlstr)
-  doc, err := httpGetDocumentInUTF8(urlstr)
+  doc, err := newDocumentInUTF8(urlstr, http.Get)
   if err != nil {
-    glog.Errorf("[HEYZO] Error parsing %s: %v", urlstr, err)
+    glog.Warningf("[HEYZO] Error parsing %s: %v", urlstr, err)
     return
   }
 

@@ -2,6 +2,7 @@ package opendmm
 
 import (
   "fmt"
+  "net/http"
   "net/url"
   "regexp"
   "strings"
@@ -22,9 +23,9 @@ func tkhParseCode(code string) string {
 
 func tkhParse(urlstr string, metach chan MovieMeta) {
   glog.Info("[TKH] Product page: ", urlstr)
-  doc, err := httpGetDocumentInUTF8(urlstr)
+  doc, err := newDocumentInUTF8(urlstr, http.Get)
   if err != nil {
-    glog.Errorf("[TKH] Error parsing %s: %v", urlstr, err)
+    glog.Warningf("[TKH] Error parsing %s: %v", urlstr, err)
     return
   }
 
@@ -71,9 +72,9 @@ func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
     url.QueryEscape(keyword),
   )
   glog.Info("[TKH] Search page: ", urlstr)
-  doc, err := httpGetDocumentInUTF8(urlstr)
+  doc, err := newDocumentInUTF8(urlstr, http.Get)
   if (err != nil) {
-    glog.Errorf("[TKH] Error parsing %s: %v", urlstr, err)
+    glog.Warningf("[TKH] Error parsing %s: %v", urlstr, err)
     return
   }
 

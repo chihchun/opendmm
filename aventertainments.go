@@ -2,6 +2,7 @@ package opendmm
 
 import (
   "fmt"
+  "net/http"
   "net/url"
   "regexp"
   "strings"
@@ -13,9 +14,9 @@ import (
 
 func aveParse(urlstr string, keyword string, metach chan MovieMeta) {
   glog.Info("[AVE] Product page: ", urlstr)
-  doc, err := httpGetDocumentInUTF8(urlstr)
+  doc, err := newDocumentInUTF8(urlstr, http.Get)
   if err != nil {
-    glog.Errorf("[AVE] Error parsing %s: %v", urlstr, err)
+    glog.Warningf("[AVE] Error parsing %s: %v", urlstr, err)
     return
   }
 
@@ -61,9 +62,9 @@ func aveSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
     url.QueryEscape(keyword),
   )
   glog.Info("[AVE] Search page: ", urlstr)
-  doc, err := httpGetDocumentInUTF8(urlstr)
+  doc, err := newDocumentInUTF8(urlstr, http.Get)
   if (err != nil) {
-    glog.Errorf("[AVE] Error parsing %s: %v", urlstr, err)
+    glog.Warningf("[AVE] Error parsing %s: %v", urlstr, err)
     return
   }
 

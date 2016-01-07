@@ -2,6 +2,7 @@ package opendmm
 
 import (
   "fmt"
+  "net/http"
   "net/url"
   "regexp"
   "strings"
@@ -13,9 +14,9 @@ import (
 
 func javParse(urlstr string, keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
   glog.Info("[JAV] Product/Search page: ", urlstr)
-  doc, err := httpGetDocumentInUTF8(urlstr)
+  doc, err := newDocumentInUTF8(urlstr, http.Get)
   if err != nil {
-    glog.Errorf("[JAV] Error parsing %s: %v", urlstr, err)
+    glog.Warningf("[JAV] Error parsing %s: %v", urlstr, err)
     return
   }
 

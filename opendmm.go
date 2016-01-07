@@ -122,3 +122,16 @@ func Search(query string) chan MovieMeta {
   }()
   return validateFields(trimSpaces(deduplicate(metach)))
 }
+
+func Crawl() {
+  db, err := openDB("/tmp/opendmm.boltdb")
+  if err != nil {
+    glog.Fatal(err)
+  }
+
+  var wgs [](*sync.WaitGroup)
+  wgs = append(wgs, opdCrawl(db))
+  for _, wg := range wgs {
+    wg.Wait()
+  }
+}

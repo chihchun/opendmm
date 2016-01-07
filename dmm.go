@@ -2,6 +2,7 @@ package opendmm
 
 import (
   "fmt"
+  "net/http"
   "net/url"
   "regexp"
   "strings"
@@ -22,9 +23,9 @@ func dmmParseCode(code string) string {
 
 func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
   glog.Info("[DMM] Prduct page: ", urlstr)
-  doc, err := httpGetDocumentInUTF8(urlstr)
+  doc, err := newDocumentInUTF8(urlstr, http.Get)
   if err != nil {
-    glog.Errorf("[DMM] Error parsing %s: %v", urlstr, err)
+    glog.Warningf("[DMM] Error parsing %s: %v", urlstr, err)
     return
   }
 
@@ -86,9 +87,9 @@ func dmmSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup)
     url.QueryEscape(keyword),
   )
   glog.Info("[DMM] Search page: ", urlstr)
-  doc, err := httpGetDocumentInUTF8(urlstr)
+  doc, err := newDocumentInUTF8(urlstr, http.Get)
   if (err != nil) {
-    glog.Errorf("[DMM] Error parsing %s: %v", err)
+    glog.Warningf("[DMM] Error parsing %s: %v", err)
     return
   }
 
