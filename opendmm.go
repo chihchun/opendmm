@@ -1,13 +1,8 @@
 package opendmm
 
 import (
-  "encoding/json"
-  "reflect"
-  "regexp"
-  "strings"
   "sync"
 
-  "github.com/boltdb/bolt"
   "github.com/golang/glog"
 )
 
@@ -30,80 +25,6 @@ type MovieMeta struct {
   Tags           []string
   ThumbnailImage string
   Title          string
-}
-
-func deduplicate(in chan MovieMeta) chan MovieMeta {
-  out := make(chan MovieMeta)
-  go func() {
-    defer close(out)
-    for meta := range in {
-      glog.Info("[STAGE] Deduplicate")
-      segments := regexp.MustCompile("\\s").Split(meta.Title, -1)
-      for i, segment := range segments {
-        if segment == meta.Code {
-          segments[i] = ""
-        } else {
-          for _, actress := range meta.Actresses {
-            if segment == actress {
-              segments[i] = ""
-              break
-            }
-          }
-        }
-      }
-      meta.Title = strings.Join(segments, " ")
-      out <- meta
-    }
-  }()
-  return out
-}
-
-func trimSpaces(in chan MovieMeta) chan MovieMeta {
-  out := make(chan MovieMeta)
-  go func() {
-    defer close(out)
-    for meta := range in {
-      glog.Info("[STAGE] Trim spaces")
-
-      value := reflect.ValueOf(&meta).Elem()
-      for fi := 0; fi < value.NumField(); fi++ {
-        field := value.Field(fi)
-        switch field.Interface().(type) {
-        case string:
-          str := field.String()
-          str = strings.TrimSpace(str)
-          str = regexp.MustCompile("\\s+").ReplaceAllString(str, " ")
-          field.SetString(str)
-        case []string:
-          for ei := 0; ei < field.Len(); ei++ {
-            elem := field.Index(ei)
-            str := elem.String()
-            str = strings.TrimSpace(str)
-            str = regexp.MustCompile("\\s+").ReplaceAllString(str, " ")
-            elem.SetString(str)
-          }
-        }
-      }
-      out <- meta
-    }
-  }()
-  return out
-}
-
-func validateFields(in chan MovieMeta) chan MovieMeta {
-  out := make(chan MovieMeta)
-  go func() {
-    defer close(out)
-    for meta := range in {
-      glog.Info("[STAGE] Validate fields")
-      if meta.Code == "" || meta.Title == "" || meta.CoverImage == "" {
-        glog.Warning("[STAGE] Validate failed: ", meta)
-      } else {
-        out <- meta
-      }
-    }
-  }()
-  return out
 }
 
 func Search(query string) chan MovieMeta {
@@ -133,25 +54,6 @@ func Search(query string) chan MovieMeta {
   return validateFields(trimSpaces(deduplicate(metach)))
 }
 
-func saveMeta(db *bolt.DB, metach chan MovieMeta) {
-  for meta := range metach {
-    glog.Info("[STAGE] Save to DB")
-    glog.V(2).Infof("[STAGE] Saving: %+v", meta)
-    bdata, err := json.Marshal(meta)
-    if err != nil {
-      glog.Errorf("[STAGE] Failed to marshal: %+v, Reason: %v", meta, err)
-      continue
-    }
-    err = db.Update(func(tx *bolt.Tx) error {
-      bucket := tx.Bucket([]byte("MovieMeta"))
-      return bucket.Put([]byte(meta.Code), bdata)
-    })
-    if err != nil {
-      glog.Errorf("[STAGE] Error writing db: %v", err)
-    }
-  }
-}
-
 func Crawl() {
   db, err := openDB("/tmp/opendmm.boltdb")
   if err != nil {
@@ -169,5 +71,5 @@ func Crawl() {
     close(metach)
   }()
 
-  saveMeta(db, validateFields(trimSpaces(deduplicate(metach))))
+  saveToDB(validateFields(trimSpaces(deduplicate(metach))), db)
 }
