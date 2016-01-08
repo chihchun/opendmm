@@ -13,7 +13,7 @@ func assertSearchable(t *testing.T, queries []string, search func(string, chan M
       wg.Wait()
       close(metach)
     }()
-    meta, ok := <-validateFields(trimSpaces(deduplicate(metach)))
+    meta, ok := <-postprocess(metach)
     if !ok {
       t.Errorf("%s not found", query)
     } else {
@@ -30,7 +30,7 @@ func assertUnsearchable(t *testing.T, queries []string, search func(string, chan
       wg.Wait()
       close(metach)
     }()
-    meta, ok := <-validateFields(trimSpaces(deduplicate(metach)))
+    meta, ok := <-postprocess(metach)
     if ok {
       t.Error("Unexpected: %s -> %+v", query, meta)
     }

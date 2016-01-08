@@ -83,6 +83,10 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
   return out
 }
 
+func postprocess(in chan MovieMeta) chan MovieMeta {
+  return validateFields(trimSpaces(deduplicate(in)))
+}
+
 func saveToDB(metach chan MovieMeta, db *bolt.DB) {
   for meta := range metach {
     glog.Info("[STAGE] Save to DB")

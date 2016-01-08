@@ -27,11 +27,7 @@ type MovieMeta struct {
   Title          string
 }
 
-func Search(query string) chan MovieMeta {
-  db, err := openDB("/tmp/opendmm.boltdb")
-  if err != nil {
-    glog.Fatal(err)
-  }
+func Search(query string, dbpath string) chan MovieMeta {
   metach := make(chan MovieMeta)
 
   var wgs [](*sync.WaitGroup)
@@ -42,7 +38,10 @@ func Search(query string) chan MovieMeta {
   wgs = append(wgs, heyzoSearch(query, metach))
   wgs = append(wgs, javSearch(query, metach))
   wgs = append(wgs, tkhSearch(query, metach))
-  if db != nil {
+  db, err := openDB(dbpath)
+  if err != nil {
+    glog.Error(err)
+  } else {
     wgs = append(wgs, opdSearch(query, db, metach))
   }
   go func() {
@@ -51,11 +50,11 @@ func Search(query string) chan MovieMeta {
     }
     close(metach)
   }()
-  return validateFields(trimSpaces(deduplicate(metach)))
+  return postprocess(metach)
 }
 
-func Crawl() {
-  db, err := openDB("/tmp/opendmm.boltdb")
+func Crawl(dbpath string) {
+  db, err := openDB(dbpath)
   if err != nil {
     glog.Fatal(err)
   }
@@ -71,5 +70,5 @@ func Crawl() {
     close(metach)
   }()
 
-  saveToDB(validateFields(trimSpaces(deduplicate(metach))), db)
+  saveToDB(postprocess(metach), db)
 }
