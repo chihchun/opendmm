@@ -3,6 +3,7 @@ package opendmm
 import (
   "sync"
 
+  "github.com/boltdb/bolt"
   "github.com/golang/glog"
 )
 
@@ -27,7 +28,7 @@ type MovieMeta struct {
   Title          string
 }
 
-func Search(query string, dbpath string) chan MovieMeta {
+func Search(query string, db *bolt.DB) chan MovieMeta {
   metach := make(chan MovieMeta)
 
   var wgs [](*sync.WaitGroup)
@@ -38,10 +39,7 @@ func Search(query string, dbpath string) chan MovieMeta {
   wgs = append(wgs, heyzoSearch(query, metach))
   wgs = append(wgs, javSearch(query, metach))
   wgs = append(wgs, tkhSearch(query, metach))
-  db, err := openDB(dbpath)
-  if err != nil {
-    glog.Error(err)
-  } else {
+  if db != nil {
     wgs = append(wgs, opdSearch(query, db, metach))
   }
   go func() {
@@ -53,12 +51,10 @@ func Search(query string, dbpath string) chan MovieMeta {
   return postprocess(metach)
 }
 
-func Crawl(dbpath string) {
-  db, err := openDB(dbpath)
-  if err != nil {
-    glog.Fatal(err)
+func Crawl(db *bolt.DB) {
+  if db == nil {
+    glog.Fatal("Must provide a db to start crawling")
   }
-  defer db.Close()
   metach := make(chan MovieMeta)
 
   var wgs [](*sync.WaitGroup)
