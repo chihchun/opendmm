@@ -13,7 +13,7 @@ import (
   "github.com/PuerkitoBio/goquery"
 )
 
-func opdParse(db *bolt.DB, metach chan MovieMeta, urlstr string) {
+func opdParse(urlstr string, metach chan MovieMeta) {
   glog.Info("[OPD] Product page: ", urlstr)
   doc, err := newDocumentInUTF8(urlstr, httpx.GetMobile)
   if err != nil {
@@ -61,7 +61,7 @@ func opdParse(db *bolt.DB, metach chan MovieMeta, urlstr string) {
   metach <- meta
 }
 
-func opdCrawlList(db *bolt.DB, metach chan MovieMeta, wg *sync.WaitGroup, page int) {
+func opdCrawlList(page int, wg *sync.WaitGroup, metach chan MovieMeta) {
   glog.Info("[OPD] Crawling page ", page)
   urlstr := fmt.Sprintf("http://m.1pondo.tv/listpages/all_%d.html", page)
   doc, err := newDocumentInUTF8(urlstr, httpx.GetMobile)
@@ -82,24 +82,24 @@ func opdCrawlList(db *bolt.DB, metach chan MovieMeta, wg *sync.WaitGroup, page i
     wg.Add(1)
     go func() {
       defer wg.Done()
-      opdParse(db, metach, href)
+      opdParse(href, metach)
     }()
   })
-  opdCrawlList(db, metach, wg, page + 1)
+  opdCrawlList(page + 1, wg, metach)
 }
 
-func opdCrawl(db *bolt.DB, metach chan MovieMeta) *sync.WaitGroup {
+func opdCrawl(metach chan MovieMeta) *sync.WaitGroup {
   glog.Info("[OPD] Crawling start")
   wg := new(sync.WaitGroup)
   wg.Add(1)
   go func() {
     defer wg.Done()
-    opdCrawlList(db, metach, wg, 1)
+    opdCrawlList(1, wg, metach)
   }()
   return wg
 }
 
-func opdSearchKeyword(db *bolt.DB, keyword string, metach chan MovieMeta) {
+func opdSearchKeyword(keyword string, db *bolt.DB, metach chan MovieMeta) {
   glog.Info("[OPD] Keyword: ", keyword)
   var meta MovieMeta
   err := db.View(func(tx *bolt.Tx) error {
@@ -117,7 +117,7 @@ func opdSearchKeyword(db *bolt.DB, keyword string, metach chan MovieMeta) {
   }
 }
 
-func opdSearch(db *bolt.DB, query string, metach chan MovieMeta) *sync.WaitGroup {
+func opdSearch(query string, db *bolt.DB, metach chan MovieMeta) *sync.WaitGroup {
   glog.Info("[OPD] Query: ", query)
   wg := new(sync.WaitGroup)
   re := regexp.MustCompile("(\\d{6})[-_](\\d{3})")
@@ -127,7 +127,7 @@ func opdSearch(db *bolt.DB, query string, metach chan MovieMeta) *sync.WaitGroup
     wg.Add(1)
     go func() {
       defer wg.Done()
-      opdSearchKeyword(db, keyword, metach)
+      opdSearchKeyword(keyword, db, metach)
     }()
   }
   return wg

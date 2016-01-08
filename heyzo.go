@@ -12,7 +12,7 @@ import (
   "github.com/PuerkitoBio/goquery"
 )
 
-func heyzoParse(keyword string, urlstr string, metach chan MovieMeta) {
+func heyzoParse(urlstr string, keyword string, metach chan MovieMeta) {
   glog.Info("[HEYZO] Product page: ", urlstr)
   doc, err := newDocumentInUTF8(urlstr, http.Get)
   if err != nil {
@@ -64,7 +64,7 @@ func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
     "http://www.heyzo.com/moviepages/%s/index.html",
     url.QueryEscape(keyword),
   )
-  heyzoParse(keyword, urlstr, metach)
+  heyzoParse(urlstr, keyword, metach)
 }
 
 func heyzoSearch(query string, metach chan MovieMeta) *sync.WaitGroup {

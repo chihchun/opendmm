@@ -43,7 +43,7 @@ func Search(query string) chan MovieMeta {
   wgs = append(wgs, javSearch(query, metach))
   wgs = append(wgs, tkhSearch(query, metach))
   if db != nil {
-    wgs = append(wgs, opdSearch(db, query, metach))
+    wgs = append(wgs, opdSearch(query, db, metach))
   }
   go func() {
     for _, wg := range wgs {
@@ -63,7 +63,7 @@ func Crawl() {
   metach := make(chan MovieMeta)
 
   var wgs [](*sync.WaitGroup)
-  wgs = append(wgs, opdCrawl(db, metach))
+  wgs = append(wgs, opdCrawl(metach))
   go func() {
     for _, wg := range wgs {
       wg.Wait()

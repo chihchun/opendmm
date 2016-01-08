@@ -12,7 +12,7 @@ import (
   "github.com/PuerkitoBio/goquery"
 )
 
-func caribprParse(keyword string, urlstr string, metach chan MovieMeta) {
+func caribprParse(urlstr string, keyword string, metach chan MovieMeta) {
   glog.Info("[CARIBPR] Product page: ", urlstr)
   doc, err := newDocumentInUTF8(urlstr, http.Get)
   if err != nil {
@@ -85,7 +85,7 @@ func caribprSearchKeyword(keyword string, metach chan MovieMeta) {
     "http://www.caribbeancompr.com/moviepages/%s/index.html",
     url.QueryEscape(keyword),
   )
-  caribprParse(keyword, urlstr, metach)
+  caribprParse(urlstr, keyword, metach)
 }
 
 func caribprSearch(query string, metach chan MovieMeta) *sync.WaitGroup {

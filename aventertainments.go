@@ -55,7 +55,7 @@ func aveParse(urlstr string, keyword string, metach chan MovieMeta) {
   }
 }
 
-func aveSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func aveSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
   glog.Info("[AVE] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.aventertainments.com/search_Products.aspx?keyword=%s",
@@ -91,7 +91,7 @@ func aveSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
     wg.Add(1)
     go func() {
       defer wg.Done()
-      aveSearchKeyword(keyword, metach, wg)
+      aveSearchKeyword(keyword, wg, metach)
     }()
   }
   return wg

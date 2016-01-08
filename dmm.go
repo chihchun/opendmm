@@ -80,7 +80,7 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
   }
 }
 
-func dmmSearchKeyword(keyword string, metach chan MovieMeta, wg *sync.WaitGroup) {
+func dmmSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
   glog.Info("[DMM] Keyword: ", keyword)
   urlstr := fmt.Sprintf(
     "http://www.dmm.co.jp/search/=/searchstr=%s",
@@ -116,7 +116,7 @@ func dmmSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
     wg.Add(1)
     go func() {
       defer wg.Done()
-      dmmSearchKeyword(keyword, metach, wg)
+      dmmSearchKeyword(keyword, wg, metach)
     }()
   }
   return wg
