@@ -85,7 +85,7 @@ func opdCrawlList(db *bolt.DB, metach chan MovieMeta, wg *sync.WaitGroup, page i
       opdParse(db, metach, href)
     }()
   })
-  // opdCrawlList(db, wg, page + 1)
+  opdCrawlList(db, metach, wg, page + 1)
 }
 
 func opdCrawl(db *bolt.DB, metach chan MovieMeta) *sync.WaitGroup {
@@ -113,9 +113,7 @@ func opdSearchKeyword(db *bolt.DB, keyword string, metach chan MovieMeta) {
   if err != nil {
     glog.Warningf("[OPD] Error: %v", err)
   } else {
-    glog.Infof("[OPD] Found: %+v", meta)
     metach <- meta
-    glog.Infof("[OPD] In channel: %+v", meta)
   }
 }
 
