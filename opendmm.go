@@ -1,11 +1,13 @@
 package opendmm
 
 import (
+  "encoding/json"
   "reflect"
   "regexp"
   "strings"
   "sync"
 
+  "github.com/boltdb/bolt"
   "github.com/golang/glog"
 )
 
@@ -105,7 +107,12 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
 }
 
 func Search(query string) chan MovieMeta {
+  db, err := openDB("/tmp/opendmm.boltdb")
+  if err != nil {
+    glog.Fatal(err)
+  }
   metach := make(chan MovieMeta)
+
   var wgs [](*sync.WaitGroup)
   wgs = append(wgs, aveSearch(query, metach))
   wgs = append(wgs, caribSearch(query, metach))
@@ -114,6 +121,9 @@ func Search(query string) chan MovieMeta {
   wgs = append(wgs, heyzoSearch(query, metach))
   wgs = append(wgs, javSearch(query, metach))
   wgs = append(wgs, tkhSearch(query, metach))
+  if db != nil {
+    wgs = append(wgs, opdSearch(db, query, metach))
+  }
   go func() {
     for _, wg := range wgs {
       wg.Wait()
@@ -123,15 +133,41 @@ func Search(query string) chan MovieMeta {
   return validateFields(trimSpaces(deduplicate(metach)))
 }
 
+func saveMeta(db *bolt.DB, metach chan MovieMeta) {
+  for meta := range metach {
+    glog.Info("[STAGE] Save to DB")
+    glog.V(2).Infof("[STAGE] Saving: %+v", meta)
+    bdata, err := json.Marshal(meta)
+    if err != nil {
+      glog.Errorf("[STAGE] Failed to marshal: %+v, Reason: %v", meta, err)
+      continue
+    }
+    err = db.Update(func(tx *bolt.Tx) error {
+      bucket := tx.Bucket([]byte("MovieMeta"))
+      return bucket.Put([]byte(meta.Code), bdata)
+    })
+    if err != nil {
+      glog.Errorf("[STAGE] Error writing db: %v", err)
+    }
+  }
+}
+
 func Crawl() {
   db, err := openDB("/tmp/opendmm.boltdb")
   if err != nil {
     glog.Fatal(err)
   }
+  defer db.Close()
+  metach := make(chan MovieMeta)
 
   var wgs [](*sync.WaitGroup)
-  wgs = append(wgs, opdCrawl(db))
-  for _, wg := range wgs {
-    wg.Wait()
-  }
+  wgs = append(wgs, opdCrawl(db, metach))
+  go func() {
+    for _, wg := range wgs {
+      wg.Wait()
+    }
+    close(metach)
+  }()
+
+  saveMeta(db, validateFields(trimSpaces(deduplicate(metach))))
 }
