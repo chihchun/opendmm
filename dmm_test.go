@@ -10,6 +10,7 @@ func TestDmm(t *testing.T) {
     "mide-029",
     "XV-100",
     "XV-1001",
+    "IPZ687",
   }
   assertSearchable(t, queries, dmmSearch)
   blackhole := []string {
