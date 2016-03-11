@@ -53,7 +53,10 @@ func heyzoParse(urlstr string, keyword string, metach chan MovieMeta) {
     func(i int, li *goquery.Selection) string {
       return li.Text()
     })
-  meta.Description = doc.Find("#movie > div.info-bg.info-bgWide > div > p > *").Nodes[0].Data
+  descrption_nodes := doc.Find("#movie > div.info-bg.info-bgWide > div > p > *").Nodes
+  if len(descrption_nodes) > 0 {
+    meta.Description = descrption_nodes[0].Data
+  }
 
   metach <- meta
 }

@@ -95,10 +95,10 @@ func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
 func tkhSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
   glog.Info("[TKH] Query: ", query)
   wg := new(sync.WaitGroup)
-  re := regexp.MustCompile("(?i)(k|n)(\\d{3,4})")
+  re := regexp.MustCompile("(?i)(tokyo.*hot.*|^)(k|n)(\\d{3,4})")
   matches := re.FindAllStringSubmatch(query, -1)
   for _, match := range matches {
-    keyword := fmt.Sprintf("%s%04s", strings.ToLower(match[1]), match[2])
+    keyword := fmt.Sprintf("%s%04s", strings.ToLower(match[2]), match[3])
     wg.Add(1)
     go func() {
       defer wg.Done()
