@@ -1,21 +1,21 @@
 package opendmm
 
 import (
-  "testing"
+	"testing"
 )
 
 func TestDmm(t *testing.T) {
-  queries := []string {
-    "MIDE-029",
-    "mide-029",
-    "XV-100",
-    "XV-1001",
-    "IPZ687",
-  }
-  assertSearchable(t, queries, dmmSearch)
-  blackhole := []string {
-    "MCB3DBD-25",
-    "S2MBD-048",
-  }
-  assertUnsearchable(t, blackhole, dmmSearch)
+	queries := []string{
+		"MIDE-029",
+		"mide-029",
+		"XV-100",
+		"XV-1001",
+		"IPZ687",
+	}
+	assertSearchable(t, queries, dmmSearch)
+	blackhole := []string{
+		"MCB3DBD-25",
+		"S2MBD-048",
+	}
+	assertUnsearchable(t, blackhole, dmmSearch)
 }
