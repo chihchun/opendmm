@@ -2,11 +2,9 @@ package opendmm
 
 import (
 	"sync"
-
-	"github.com/boltdb/bolt"
-	"github.com/golang/glog"
 )
 
+// MovieMeta contains meta data of movie
 type MovieMeta struct {
 	Actresses      []string
 	ActressTypes   []string
@@ -28,7 +26,8 @@ type MovieMeta struct {
 	Title          string
 }
 
-func Search(query string, db *bolt.DB) chan MovieMeta {
+// Search for movies based on query and return a channel of MovieMeta
+func Search(query string, dbpath string) chan MovieMeta {
 	metach := make(chan MovieMeta)
 
 	var wgs [](*sync.WaitGroup)
@@ -39,9 +38,7 @@ func Search(query string, db *bolt.DB) chan MovieMeta {
 	wgs = append(wgs, heyzoSearch(query, metach))
 	wgs = append(wgs, javSearch(query, metach))
 	wgs = append(wgs, tkhSearch(query, metach))
-	if db != nil {
-		wgs = append(wgs, opdSearch(query, db, metach))
-	}
+	wgs = append(wgs, opdSearch(query, dbpath, metach))
 	go func() {
 		for _, wg := range wgs {
 			wg.Wait()
@@ -49,22 +46,4 @@ func Search(query string, db *bolt.DB) chan MovieMeta {
 		close(metach)
 	}()
 	return postprocess(metach)
-}
-
-func Crawl(db *bolt.DB) {
-	if db == nil {
-		glog.Fatal("Must provide a db to start crawling")
-	}
-	metach := make(chan MovieMeta)
-
-	var wgs [](*sync.WaitGroup)
-	wgs = append(wgs, opdCrawl(metach))
-	go func() {
-		for _, wg := range wgs {
-			wg.Wait()
-		}
-		close(metach)
-	}()
-
-	saveToDB(postprocess(metach), db)
 }

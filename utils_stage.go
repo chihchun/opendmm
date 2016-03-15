@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/boltdb/bolt"
 	"github.com/golang/glog"
 )
 
@@ -85,14 +84,4 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
 
 func postprocess(in chan MovieMeta) chan MovieMeta {
 	return validateFields(trimSpaces(deduplicate(in)))
-}
-
-func saveToDB(metach chan MovieMeta, db *bolt.DB) {
-	for meta := range metach {
-		glog.Info("[STAGE] Save to DB")
-		err := writeMetaToDB(meta, db)
-		if err != nil {
-			glog.Errorf("[STAGE] Failed to save %+v", meta)
-		}
-	}
 }

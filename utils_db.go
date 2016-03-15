@@ -7,7 +7,7 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-func NewDB(path string) (*bolt.DB, error) {
+func newDB(path string) (*bolt.DB, error) {
 	db, err := bolt.Open(path, 0600, nil)
 	if err != nil {
 		return nil, err

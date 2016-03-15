@@ -4,100 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"strings"
 	"sync"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/boltdb/bolt"
 	"github.com/golang/glog"
-	"github.com/junzh0u/httpx"
 )
-
-func opdParse(urlstr string, metach chan MovieMeta) {
-	glog.Info("[OPD] Product page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetMobile)
-	if err != nil {
-		glog.Warningf("[OPD] Error parsing %s: %v", urlstr, err)
-		return
-	}
-
-	var meta MovieMeta
-
-	rawhtml, _ := doc.Html()
-	re := regexp.MustCompile("original_movie_id\\s*=\\s*(\\d{6}_\\d{3})")
-	match := re.FindStringSubmatch(rawhtml)
-	if match == nil {
-		return
-	}
-	meta.Page = urlstr
-	meta.Maker = "1pondo"
-	meta.Code = fmt.Sprintf("1pondo %s", match[1])
-	meta.CoverImage = fmt.Sprintf("http://www.1pondo.tv/assets/sample/%s/str.jpg", match[1])
-	meta.ThumbnailImage = fmt.Sprintf("http://www.1pondo.tv/assets/sample/%s/thum_b.jpg", match[1])
-
-	meta.Title = doc.Find("#tab-1 > h1").Text()
-	doc.Find("#tab-1 > table > tbody > tr").Each(
-		func(i int, tr *goquery.Selection) {
-			tds := tr.Find("td")
-			k := tds.First().Text()
-			v := tds.Last()
-			if strings.Contains(k, "女優名：") {
-				meta.Actresses = v.Find("li").Map(
-					func(i int, li *goquery.Selection) string {
-						return li.Text()
-					})
-			} else if strings.Contains(k, "配信日") {
-				meta.ReleaseDate = v.Text()
-			} else if strings.Contains(k, "プレイ時間") {
-				meta.MovieLength = v.Text()
-			} else if strings.Contains(k, "ジャンル") {
-				meta.Genres = v.Find("li").Map(
-					func(i int, li *goquery.Selection) string {
-						return li.Text()
-					})
-			}
-		})
-
-	metach <- meta
-}
-
-func opdCrawlList(page int, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("[OPD] Crawling page ", page)
-	urlstr := fmt.Sprintf("http://m.1pondo.tv/listpages/all_%d.html", page)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetMobile)
-	if err != nil {
-		glog.Warningf("[OPD] Error parsing %s: %v", urlstr, err)
-		return
-	}
-	as := doc.Find("#showList > li > div > a")
-	if as.Length() == 0 {
-		glog.Info("[OPD] Reached empty page at: ", urlstr)
-		return
-	}
-	as.Each(func(i int, a *goquery.Selection) {
-		href, ok := a.Attr("href")
-		if !ok {
-			return
-		}
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			opdParse(href, metach)
-		}()
-	})
-	opdCrawlList(page+1, wg, metach)
-}
-
-func opdCrawl(metach chan MovieMeta) *sync.WaitGroup {
-	glog.Info("[OPD] Crawling start")
-	wg := new(sync.WaitGroup)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		opdCrawlList(1, wg, metach)
-	}()
-	return wg
-}
 
 func opdSearchKeyword(keyword string, db *bolt.DB, metach chan MovieMeta) {
 	glog.Info("[OPD] Keyword: ", keyword)
@@ -106,20 +17,24 @@ func opdSearchKeyword(keyword string, db *bolt.DB, metach chan MovieMeta) {
 		bucket := tx.Bucket([]byte("MovieMeta"))
 		bdata := bucket.Get([]byte(keyword))
 		if bdata == nil {
-			return fmt.Errorf("Not found: %s", keyword)
+			return fmt.Errorf("[OPD] Not found: %s", keyword)
 		}
 		return json.Unmarshal(bdata, &meta)
 	})
-	if err != nil {
-		glog.Warningf("[OPD] Error: %v", err)
-	} else {
+	if err == nil {
 		metach <- meta
 	}
 }
 
-func opdSearch(query string, db *bolt.DB, metach chan MovieMeta) *sync.WaitGroup {
+func opdSearch(query string, dbpath string, metach chan MovieMeta) *sync.WaitGroup {
 	glog.Info("[OPD] Query: ", query)
 	wg := new(sync.WaitGroup)
+	db, err := newDB(dbpath)
+	if err != nil {
+		glog.Error("[OPD] Can't open DB")
+		return wg
+	}
+
 	re := regexp.MustCompile("(\\d{6})[-_](\\d{3})")
 	matches := re.FindAllStringSubmatch(query, -1)
 	for _, match := range matches {
