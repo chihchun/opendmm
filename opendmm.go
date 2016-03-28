@@ -2,6 +2,9 @@ package opendmm
 
 import (
 	"sync"
+
+	"github.com/golang/glog"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 // MovieMeta contains meta data of movie
@@ -29,7 +32,6 @@ type MovieMeta struct {
 // Search for movies based on query and return a channel of MovieMeta
 func Search(query string) chan MovieMeta {
 	metach := make(chan MovieMeta)
-
 	var wgs [](*sync.WaitGroup)
 	wgs = append(wgs, aveSearch(query, metach))
 	wgs = append(wgs, caribSearch(query, metach))
@@ -39,11 +41,24 @@ func Search(query string) chan MovieMeta {
 	wgs = append(wgs, javSearch(query, metach))
 	wgs = append(wgs, mgsSearch(query, metach))
 	wgs = append(wgs, tkhSearch(query, metach))
+
+	httpCache, err := leveldb.OpenFile("/tmp/opendmm.http.cache", nil)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	movieCache, err := leveldb.OpenFile("/tmp/opendmm.movie.cache", nil)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	wgs = append(wgs, opdSearch(query, httpCache, movieCache, metach))
+
 	go func() {
 		for _, wg := range wgs {
 			wg.Wait()
 		}
 		close(metach)
+		httpCache.Close()
+		movieCache.Close()
 	}()
 	return postprocess(metach)
 }
