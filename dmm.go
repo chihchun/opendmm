@@ -22,7 +22,7 @@ func dmmParseCode(code string) string {
 }
 
 func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("[DMM] Prduct page: ", urlstr)
+	glog.Info("[DMM] Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
 		glog.Warningf("[DMM] Error parsing %s: %v", urlstr, err)
@@ -89,7 +89,7 @@ func dmmSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 	glog.Info("[DMM] Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[DMM] Error parsing %s: %v", err)
+		glog.Warningf("[DMM] Error parsing %s: %v", urlstr, err)
 		return
 	}
 
