@@ -12,6 +12,30 @@ import (
 	"github.com/junzh0u/httpx"
 )
 
+const (
+	savePageJS string = `var system = require('system');
+var page = require('webpage').create();
+
+page.onError = function(msg, trace) {
+	// do nothing
+};
+
+phantom.addCookie({
+  'name'     : 'adc',
+  'value'    : '1',
+  'domain'   : '.mgstage.com',
+  'path'     : '/',
+  'httponly' : false,
+  'secure'   : false,
+  'expires'  : (new Date()).getTime() + (1000 * 60 * 60)
+});
+
+page.open(system.args[1], function(status) {
+  console.log(page.content);
+  phantom.exit();
+});`
+)
+
 func mgsParseCode(code string) string {
 	re := regexp.MustCompile("(?i)([a-z]+)(\\d+)")
 	meta := re.FindStringSubmatch(code)
@@ -23,7 +47,7 @@ func mgsParseCode(code string) string {
 
 func mgsParse(urlstr string, keyword string, metach chan MovieMeta) {
 	glog.Info("[MGS] Product page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetFullPage)
+	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
 	if err != nil {
 		glog.Warningf("[MGS] Error parsing %s: %v", urlstr, err)
 		return
@@ -76,7 +100,7 @@ func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 		url.QueryEscape(keyword),
 	)
 	glog.Info("[MGS] Search page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetFullPage)
+	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
 	if err != nil {
 		glog.Warningf("[MGS] Error parsing %s: %v", urlstr, err)
 		return
