@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestMgs(t *testing.T) {
+func TestMgstage(t *testing.T) {
 	queries := []string{
 		"SIRO-1715",
 	}

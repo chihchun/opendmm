@@ -1,19 +1,24 @@
 package opendmm
 
 import (
+	"encoding/json"
 	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/golang/glog"
+	"github.com/syndtr/goleveldb/leveldb"
 )
+
+// ProcessStage is a pipe of MovieMeta
+type ProcessStage func(chan MovieMeta) chan MovieMeta
 
 func deduplicate(in chan MovieMeta) chan MovieMeta {
 	out := make(chan MovieMeta)
 	go func() {
 		defer close(out)
 		for meta := range in {
-			glog.Info("[STAGE] Deduplicate")
+			glog.Infof("[STAGE] Deduplicate: %s", meta.Code)
 			segments := regexp.MustCompile("\\s").Split(meta.Title, -1)
 			for i, segment := range segments {
 				if segment == meta.Code {
@@ -39,7 +44,7 @@ func trimSpaces(in chan MovieMeta) chan MovieMeta {
 	go func() {
 		defer close(out)
 		for meta := range in {
-			glog.Info("[STAGE] Trim spaces")
+			glog.Infof("[STAGE] Trim spaces: %s", meta.Code)
 
 			value := reflect.ValueOf(&meta).Elem()
 			for fi := 0; fi < value.NumField(); fi++ {
@@ -71,7 +76,7 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
 	go func() {
 		defer close(out)
 		for meta := range in {
-			glog.Info("[STAGE] Validate fields")
+			glog.Infof("[STAGE] Validate fields: %s", meta.Code)
 			if meta.Code == "" || meta.Title == "" || meta.CoverImage == "" {
 				glog.Warning("[STAGE] Validate failed: ", meta)
 			} else {
@@ -84,4 +89,24 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
 
 func postprocess(in chan MovieMeta) chan MovieMeta {
 	return validateFields(trimSpaces(deduplicate(in)))
+}
+
+func cacheIntoDB(db *leveldb.DB) ProcessStage {
+	return func(in chan MovieMeta) chan MovieMeta {
+		out := make(chan MovieMeta)
+		go func() {
+			defer close(out)
+			for meta := range in {
+				glog.Infof("[STAGE] Caching into DB: %s", meta.Code)
+				bdata, err := json.Marshal(meta)
+				if err != nil {
+					glog.Errorf("[STAGE] Cache failed (%s): %+v", err, meta)
+					continue
+				}
+				db.Put([]byte(meta.Code), bdata, nil)
+				out <- meta
+			}
+		}()
+		return out
+	}
 }

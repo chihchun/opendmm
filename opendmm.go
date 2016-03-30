@@ -29,6 +29,9 @@ type MovieMeta struct {
 	Title          string
 }
 
+// SearchFunc is the interface of each engine's search function
+type SearchFunc func(string, chan MovieMeta) *sync.WaitGroup
+
 // Search for movies based on query and return a channel of MovieMeta
 func Search(query string) chan MovieMeta {
 	metach := make(chan MovieMeta)
@@ -50,7 +53,7 @@ func Search(query string) chan MovieMeta {
 	if err != nil {
 		glog.Fatal(err)
 	}
-	wgs = append(wgs, opdSearch(query, httpCache, movieCache, metach))
+	wgs = append(wgs, opdSearch(movieCache)(query, metach))
 
 	go func() {
 		for _, wg := range wgs {
@@ -61,4 +64,32 @@ func Search(query string) chan MovieMeta {
 		movieCache.Close()
 	}()
 	return postprocess(metach)
+}
+
+// Crawl movies that aren't searchable directly and cache into DB
+func Crawl() {
+	httpCache, err := leveldb.OpenFile("/tmp/opendmm.http.cache", nil)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	defer httpCache.Close()
+
+	metach := make(chan MovieMeta)
+	var wgs [](*sync.WaitGroup)
+	wgs = append(wgs, opdCrawl(httpCache, metach))
+	go func() {
+		for _, wg := range wgs {
+			wg.Wait()
+		}
+		close(metach)
+		httpCache.Close()
+	}()
+
+	movieCache, err := leveldb.OpenFile("/tmp/opendmm.movie.cache", nil)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	defer movieCache.Close()
+	for _ = range cacheIntoDB(movieCache)(postprocess(metach)) {
+	}
 }
