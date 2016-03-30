@@ -33,7 +33,8 @@ func opdParse(urlstr string, httpCache *leveldb.DB) (MovieMeta, error) {
 
 	poster, ok := doc.Find("video").Attr("poster")
 	if !ok {
-		glog.Error("[OPD] no poster found")
+		err = fmt.Errorf("No poster found")
+		glog.Errorf("[OPD] %s", err)
 		return meta, err
 	}
 	urlposter, err := urlbase.Parse(poster)
@@ -72,6 +73,8 @@ func opdCrawl(httpCache *leveldb.DB, metach chan MovieMeta) *sync.WaitGroup {
 			urlstr := fmt.Sprintf("http://m.1pondo.tv/movies/%d/", id)
 			meta, err := opdParse(urlstr, httpCache)
 			if err != nil {
+				glog.Infof("[OPD] Error Count: %d", errcnt)
+				httpCache.Delete([]byte(urlstr), nil)
 				errcnt++
 			} else {
 				metach <- meta

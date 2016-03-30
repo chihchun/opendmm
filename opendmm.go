@@ -33,7 +33,7 @@ type MovieMeta struct {
 type SearchFunc func(string, chan MovieMeta) *sync.WaitGroup
 
 // Search for movies based on query and return a channel of MovieMeta
-func Search(query string) chan MovieMeta {
+func Search(query string, cache *leveldb.DB) chan MovieMeta {
 	metach := make(chan MovieMeta)
 	var wgs [](*sync.WaitGroup)
 	wgs = append(wgs, aveSearch(query, metach))
@@ -44,31 +44,20 @@ func Search(query string) chan MovieMeta {
 	wgs = append(wgs, javSearch(query, metach))
 	wgs = append(wgs, mgsSearch(query, metach))
 	wgs = append(wgs, tkhSearch(query, metach))
-
-	httpCache, err := leveldb.OpenFile("/tmp/opendmm.http.cache", nil)
-	if err != nil {
-		glog.Fatal(err)
-	}
-	movieCache, err := leveldb.OpenFile("/tmp/opendmm.movie.cache", nil)
-	if err != nil {
-		glog.Fatal(err)
-	}
-	wgs = append(wgs, opdSearch(movieCache)(query, metach))
+	wgs = append(wgs, opdSearch(cache)(query, metach))
 
 	go func() {
 		for _, wg := range wgs {
 			wg.Wait()
 		}
 		close(metach)
-		httpCache.Close()
-		movieCache.Close()
 	}()
 	return postprocess(metach)
 }
 
 // Crawl movies that aren't searchable directly and cache into DB
-func Crawl() {
-	httpCache, err := leveldb.OpenFile("/tmp/opendmm.http.cache", nil)
+func Crawl(movieCachePath, httpCachePath string) {
+	httpCache, err := leveldb.OpenFile(httpCachePath, nil)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -85,7 +74,7 @@ func Crawl() {
 		httpCache.Close()
 	}()
 
-	movieCache, err := leveldb.OpenFile("/tmp/opendmm.movie.cache", nil)
+	movieCache, err := leveldb.OpenFile(movieCachePath, nil)
 	if err != nil {
 		glog.Fatal(err)
 	}
