@@ -33,6 +33,10 @@ type MovieMeta struct {
 type SearchFunc func(string, chan MovieMeta) *sync.WaitGroup
 
 // Search for movies based on query and return a channel of MovieMeta
+// Takes an additional leveldb DB pointer to perform search on some special
+// search engines, such as onepondo.
+// The DB can be generated using the Crawl API.
+// Passing a empty DB pointer will just skip those engines.
 func Search(query string, cache *leveldb.DB) chan MovieMeta {
 	metach := make(chan MovieMeta)
 	var wgs [](*sync.WaitGroup)
@@ -44,7 +48,9 @@ func Search(query string, cache *leveldb.DB) chan MovieMeta {
 	wgs = append(wgs, javSearch(query, metach))
 	wgs = append(wgs, mgsSearch(query, metach))
 	wgs = append(wgs, tkhSearch(query, metach))
-	wgs = append(wgs, opdSearch(cache)(query, metach))
+	if cache != nil {
+		wgs = append(wgs, opdSearch(cache)(query, metach))
+	}
 
 	go func() {
 		for _, wg := range wgs {

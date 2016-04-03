@@ -36,13 +36,53 @@ page.open(system.args[1], function(status) {
 });`
 )
 
-func mgsParseCode(code string) string {
-	re := regexp.MustCompile("(?i)([a-z]+)(\\d+)")
-	meta := re.FindStringSubmatch(code)
-	if meta != nil {
-		return fmt.Sprintf("%s-%s", strings.ToUpper(meta[1]), meta[2])
+func mgsSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+	glog.Info("[MGS] Query: ", query)
+	wg := new(sync.WaitGroup)
+	re := regexp.MustCompile("(?i)(\\w{2,6}?)-?(\\d{2,5})")
+	matches := re.FindAllStringSubmatch(query, -1)
+	for _, match := range matches {
+		keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			mgsSearchKeyword(keyword, wg, metach)
+		}()
 	}
-	return code
+	return wg
+}
+
+func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
+	glog.Info("[MGS] Keyword: ", keyword)
+	urlstr := fmt.Sprintf(
+		"http://www.mgstage.com/search/search.php?search_word=%s&search_shop_id=shiroutotv",
+		url.QueryEscape(keyword),
+	)
+	glog.Info("[MGS] Search page: ", urlstr)
+	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
+	if err != nil {
+		glog.Warningf("[MGS] Error parsing %s: %v", urlstr, err)
+		return
+	}
+
+	urlbase, err := url.Parse(urlstr)
+	doc.Find("ul.pickup_list > li > p.title > a").Each(
+		func(i int, a *goquery.Selection) {
+			href, ok := a.Attr("href")
+			if !ok {
+				return
+			}
+			urlhref, err := urlbase.Parse(href)
+			if err != nil {
+				glog.Warningf("[MGS] %s", err)
+				return
+			}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				mgsParse(urlhref.String(), keyword, metach)
+			}()
+		})
 }
 
 func mgsParse(urlstr string, keyword string, metach chan MovieMeta) {
@@ -91,53 +131,4 @@ func mgsParse(urlstr string, keyword string, metach chan MovieMeta) {
 		})
 
 	metach <- meta
-}
-
-func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("[MGS] Keyword: ", keyword)
-	urlstr := fmt.Sprintf(
-		"http://www.mgstage.com/search/search.php?search_word=%s&search_shop_id=shiroutotv",
-		url.QueryEscape(keyword),
-	)
-	glog.Info("[MGS] Search page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
-	if err != nil {
-		glog.Warningf("[MGS] Error parsing %s: %v", urlstr, err)
-		return
-	}
-
-	urlbase, err := url.Parse(urlstr)
-	doc.Find("ul.pickup_list > li > p.title > a").Each(
-		func(i int, a *goquery.Selection) {
-			href, ok := a.Attr("href")
-			if !ok {
-				return
-			}
-			urlhref, err := urlbase.Parse(href)
-			if err != nil {
-				glog.Warningf("[MGS] %s", err)
-				return
-			}
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				mgsParse(urlhref.String(), keyword, metach)
-			}()
-		})
-}
-
-func mgsSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
-	glog.Info("[MGS] Query: ", query)
-	wg := new(sync.WaitGroup)
-	re := regexp.MustCompile("(?i)(\\w{2,6}?)-?(\\d{2,5})")
-	matches := re.FindAllStringSubmatch(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			mgsSearchKeyword(keyword, wg, metach)
-		}()
-	}
-	return wg
 }

@@ -12,13 +12,47 @@ import (
 	"github.com/golang/glog"
 )
 
-func tkhParseCode(code string) string {
-	re := regexp.MustCompile("(?i)([a-z]+)(\\d+)")
-	meta := re.FindStringSubmatch(code)
-	if meta != nil {
-		return fmt.Sprintf("%s-%s", strings.ToUpper(meta[1]), meta[2])
+func tkhSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+	glog.Info("[TKH] Query: ", query)
+	wg := new(sync.WaitGroup)
+	re := regexp.MustCompile("(?i)(tokyo.*hot.*|^)(k|n)(\\d{3,4})")
+	matches := re.FindAllStringSubmatch(query, -1)
+	for _, match := range matches {
+		keyword := fmt.Sprintf("%s%04s", strings.ToLower(match[2]), match[3])
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			tkhSearchKeyword(keyword, metach)
+		}()
 	}
-	return code
+	return wg
+}
+
+func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
+	glog.Info("[TKH] Keyword: ", keyword)
+	urlstr := fmt.Sprintf(
+		"http://www.tokyo-hot.com/product/?q=%s",
+		url.QueryEscape(keyword),
+	)
+	glog.Info("[TKH] Search page: ", urlstr)
+	doc, err := newDocumentInUTF8(urlstr, http.Get)
+	if err != nil {
+		glog.Warningf("[TKH] Error parsing %s: %v", urlstr, err)
+		return
+	}
+
+	href, ok := doc.Find("#main > ul > li > a").First().Attr("href")
+	if ok {
+		urlbase, err := url.Parse(urlstr)
+		if err != nil {
+			return
+		}
+		urlhref, err := urlbase.Parse(href)
+		if err != nil {
+			return
+		}
+		tkhParse(urlhref.String(), metach)
+	}
 }
 
 func tkhParse(urlstr string, metach chan MovieMeta) {
@@ -63,47 +97,4 @@ func tkhParse(urlstr string, metach chan MovieMeta) {
 			}
 		})
 	metach <- meta
-}
-
-func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
-	glog.Info("[TKH] Keyword: ", keyword)
-	urlstr := fmt.Sprintf(
-		"http://www.tokyo-hot.com/product/?q=%s",
-		url.QueryEscape(keyword),
-	)
-	glog.Info("[TKH] Search page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, http.Get)
-	if err != nil {
-		glog.Warningf("[TKH] Error parsing %s: %v", urlstr, err)
-		return
-	}
-
-	href, ok := doc.Find("#main > ul > li > a").First().Attr("href")
-	if ok {
-		urlbase, err := url.Parse(urlstr)
-		if err != nil {
-			return
-		}
-		urlhref, err := urlbase.Parse(href)
-		if err != nil {
-			return
-		}
-		tkhParse(urlhref.String(), metach)
-	}
-}
-
-func tkhSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
-	glog.Info("[TKH] Query: ", query)
-	wg := new(sync.WaitGroup)
-	re := regexp.MustCompile("(?i)(tokyo.*hot.*|^)(k|n)(\\d{3,4})")
-	matches := re.FindAllStringSubmatch(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%s%04s", strings.ToLower(match[2]), match[3])
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			tkhSearchKeyword(keyword, metach)
-		}()
-	}
-	return wg
 }

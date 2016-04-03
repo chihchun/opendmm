@@ -12,6 +12,36 @@ import (
 	"github.com/golang/glog"
 )
 
+func heyzoSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+	glog.Info("[HEYZO] Query: ", query)
+	wg := new(sync.WaitGroup)
+	matched, _ := regexp.Match("(?i)heyzo", []byte(query))
+	if !matched {
+		return wg
+	}
+
+	re := regexp.MustCompile("\\d{3,4}")
+	matches := re.FindAllString(query, -1)
+	for _, match := range matches {
+		keyword := fmt.Sprintf("%04s", match)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			heyzoSearchKeyword(keyword, metach)
+		}()
+	}
+	return wg
+}
+
+func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
+	glog.Info("[HEYZO] Keyword: ", keyword)
+	urlstr := fmt.Sprintf(
+		"http://www.heyzo.com/moviepages/%s/index.html",
+		url.QueryEscape(keyword),
+	)
+	heyzoParse(urlstr, keyword, metach)
+}
+
 func heyzoParse(urlstr string, keyword string, metach chan MovieMeta) {
 	glog.Info("[HEYZO] Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
@@ -59,34 +89,4 @@ func heyzoParse(urlstr string, keyword string, metach chan MovieMeta) {
 	}
 
 	metach <- meta
-}
-
-func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
-	glog.Info("[HEYZO] Keyword: ", keyword)
-	urlstr := fmt.Sprintf(
-		"http://www.heyzo.com/moviepages/%s/index.html",
-		url.QueryEscape(keyword),
-	)
-	heyzoParse(urlstr, keyword, metach)
-}
-
-func heyzoSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
-	glog.Info("[HEYZO] Query: ", query)
-	wg := new(sync.WaitGroup)
-	matched, _ := regexp.Match("(?i)heyzo", []byte(query))
-	if !matched {
-		return wg
-	}
-
-	re := regexp.MustCompile("\\d{3,4}")
-	matches := re.FindAllString(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%04s", match)
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			heyzoSearchKeyword(keyword, metach)
-		}()
-	}
-	return wg
 }

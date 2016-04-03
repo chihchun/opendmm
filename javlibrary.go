@@ -12,6 +12,31 @@ import (
 	"github.com/golang/glog"
 )
 
+func javSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+	glog.Info("[JAV] Query: ", query)
+	wg := new(sync.WaitGroup)
+	re := regexp.MustCompile("(?i)([a-z]\\w{1,5}?)-?(\\d{2,5})")
+	matches := re.FindAllStringSubmatch(query, -1)
+	for _, match := range matches {
+		keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			javSearchKeyword(keyword, wg, metach)
+		}()
+	}
+	return wg
+}
+
+func javSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
+	glog.Info("[JAV] Keyword: ", keyword)
+	urlstr := fmt.Sprintf(
+		"http://www.javlibrary.com/ja/vl_searchbyid.php?keyword=%s",
+		url.QueryEscape(keyword),
+	)
+	javParse(urlstr, keyword, wg, metach)
+}
+
 func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	glog.Info("[JAV] Product/Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
@@ -71,29 +96,4 @@ func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan Mov
 				}()
 			})
 	}
-}
-
-func javSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("[JAV] Keyword: ", keyword)
-	urlstr := fmt.Sprintf(
-		"http://www.javlibrary.com/ja/vl_searchbyid.php?keyword=%s",
-		url.QueryEscape(keyword),
-	)
-	javParse(urlstr, keyword, wg, metach)
-}
-
-func javSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
-	glog.Info("[JAV] Query: ", query)
-	wg := new(sync.WaitGroup)
-	re := regexp.MustCompile("(?i)([a-z]\\w{1,5}?)-?(\\d{2,5})")
-	matches := re.FindAllStringSubmatch(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			javSearchKeyword(keyword, wg, metach)
-		}()
-	}
-	return wg
 }
