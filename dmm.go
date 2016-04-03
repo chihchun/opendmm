@@ -12,6 +12,48 @@ import (
 	"github.com/golang/glog"
 )
 
+func dmmSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+	glog.Info("[DMM] Query: ", query)
+	wg := new(sync.WaitGroup)
+	re := regexp.MustCompile("(?i)([a-z]\\w{1,5}?)-?(\\d{2,5})")
+	matches := re.FindAllStringSubmatch(query, -1)
+	for _, match := range matches {
+		keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			dmmSearchKeyword(keyword, wg, metach)
+		}()
+	}
+	return wg
+}
+
+func dmmSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
+	glog.Info("[DMM] Keyword: ", keyword)
+	urlstr := fmt.Sprintf(
+		"http://www.dmm.co.jp/search/=/searchstr=%s",
+		url.QueryEscape(keyword),
+	)
+	glog.Info("[DMM] Search page: ", urlstr)
+	doc, err := newDocumentInUTF8(urlstr, http.Get)
+	if err != nil {
+		glog.Warningf("[DMM] Error parsing %s: %v", urlstr, err)
+		return
+	}
+
+	doc.Find("#list > li > div > p.tmb > a").Each(
+		func(i int, a *goquery.Selection) {
+			href, ok := a.Attr("href")
+			if ok {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					dmmParse(href, keyword, metach)
+				}()
+			}
+		})
+}
+
 func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 	glog.Info("[DMM] Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
@@ -71,44 +113,11 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 	}
 }
 
-func dmmSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("[DMM] Keyword: ", keyword)
-	urlstr := fmt.Sprintf(
-		"http://www.dmm.co.jp/search/=/searchstr=%s",
-		url.QueryEscape(keyword),
-	)
-	glog.Info("[DMM] Search page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, http.Get)
-	if err != nil {
-		glog.Warningf("[DMM] Error parsing %s: %v", urlstr, err)
-		return
+func dmmParseCode(code string) string {
+	re := regexp.MustCompile("(?i)([a-z]+)(\\d+)")
+	meta := re.FindStringSubmatch(code)
+	if meta != nil {
+		return fmt.Sprintf("%s-%s", strings.ToUpper(meta[1]), meta[2])
 	}
-
-	doc.Find("#list > li > div > p.tmb > a").Each(
-		func(i int, a *goquery.Selection) {
-			href, ok := a.Attr("href")
-			if ok {
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-					dmmParse(href, keyword, metach)
-				}()
-			}
-		})
-}
-
-func dmmSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
-	glog.Info("[DMM] Query: ", query)
-	wg := new(sync.WaitGroup)
-	re := regexp.MustCompile("(?i)([a-z]\\w{1,5}?)-?(\\d{2,5})")
-	matches := re.FindAllStringSubmatch(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			dmmSearchKeyword(keyword, wg, metach)
-		}()
-	}
-	return wg
+	return code
 }
