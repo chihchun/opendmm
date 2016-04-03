@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
@@ -46,7 +47,7 @@ func opdParse(urlstr string, httpCache *leveldb.DB) (MovieMeta, error) {
 	meta.Title = doc.Find("h2.m-title").Text()
 	meta.Actresses = doc.Find("div.video-actor > a").Map(
 		func(i int, a *goquery.Selection) string {
-			return a.Text()
+			return strings.TrimSpace(strings.Replace(a.Text(), "の作品一覧", "", -1))
 		})
 	meta.ReleaseDate = doc.Find("dd.m-release").Text()
 	meta.MovieLength = doc.Find("dd.m-duration").Text()
