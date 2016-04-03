@@ -77,6 +77,7 @@ func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan Mov
 	} else {
 		urlbase, err := url.Parse(urlstr)
 		if err != nil {
+			glog.Errorf("[JAV] %s", err)
 			return
 		}
 		doc.Find("div.videothumblist > div.videos > div.video > a").Each(
@@ -87,6 +88,7 @@ func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan Mov
 				}
 				urlhref, err := urlbase.Parse(href)
 				if err != nil {
+					glog.Errorf("[JAV] %s", err)
 					return
 				}
 				wg.Add(1)
