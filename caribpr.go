@@ -9,23 +9,32 @@ import (
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 )
 
 func caribprSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	glog.Info("[CARIBPR] Query: ", query)
 	wg := new(sync.WaitGroup)
-	re := regexp.MustCompile("(\\d{6})[-_](\\d{3})")
-	matches := re.FindAllStringSubmatch(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%s_%s", match[1], match[2])
+	keywords := caribprGuess(query)
+	for keyword := range keywords.Iter() {
 		wg.Add(1)
-		go func() {
+		go func(keyword string) {
 			defer wg.Done()
 			caribprSearchKeyword(keyword, metach)
-		}()
+		}(keyword.(string))
 	}
 	return wg
+}
+
+func caribprGuess(query string) mapset.Set {
+	re := regexp.MustCompile("(\\d{6})[-_](\\d{3})")
+	matches := re.FindAllStringSubmatch(query, -1)
+	keywords := mapset.NewSet()
+	for _, match := range matches {
+		keywords.Add(fmt.Sprintf("%s_%s", match[1], match[2]))
+	}
+	return keywords
 }
 
 func caribprSearchKeyword(keyword string, metach chan MovieMeta) {

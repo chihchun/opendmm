@@ -18,15 +18,13 @@ func opdSearch(movieCache *leveldb.DB) SearchFunc {
 	return func(query string, metach chan MovieMeta) *sync.WaitGroup {
 		glog.Info("[OPD] Query: ", query)
 		wg := new(sync.WaitGroup)
-		re := regexp.MustCompile("(\\d{6})[-_](\\d{3})")
-		matches := re.FindAllStringSubmatch(query, -1)
-		for _, match := range matches {
-			keyword := fmt.Sprintf("%s_%s", match[1], match[2])
+		keywords := caribprGuess(query)
+		for keyword := range keywords.Iter() {
 			wg.Add(1)
-			go func() {
+			go func(keyword string) {
 				defer wg.Done()
 				opdSearchKeyword(keyword, movieCache, metach)
-			}()
+			}(keyword.(string))
 		}
 		return wg
 	}

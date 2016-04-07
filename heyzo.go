@@ -9,28 +9,37 @@ import (
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 )
 
 func heyzoSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	glog.Info("[HEYZO] Query: ", query)
+	keywords := heyzoGuess(query)
 	wg := new(sync.WaitGroup)
+	for keyword := range keywords.Iter() {
+		wg.Add(1)
+		go func(keyword string) {
+			defer wg.Done()
+			heyzoSearchKeyword(keyword, metach)
+		}(keyword.(string))
+	}
+	return wg
+}
+
+func heyzoGuess(query string) mapset.Set {
+	keywords := mapset.NewSet()
 	matched, _ := regexp.Match("(?i)heyzo", []byte(query))
 	if !matched {
-		return wg
+		return keywords
 	}
 
 	re := regexp.MustCompile("\\d{3,4}")
 	matches := re.FindAllString(query, -1)
 	for _, match := range matches {
-		keyword := fmt.Sprintf("%04s", match)
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			heyzoSearchKeyword(keyword, metach)
-		}()
+		keywords.Add(fmt.Sprintf("%04s", match))
 	}
-	return wg
+	return keywords
 }
 
 func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {

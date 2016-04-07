@@ -16,7 +16,7 @@ func assertSearchable(t *testing.T, queries []string, search SearchFunc) {
 		if !ok {
 			t.Errorf("%s not found", query)
 		} else {
-			t.Logf("%s -> %+v", query, meta)
+			t.Logf("%s -> %s %s", query, meta.Code, meta.Title)
 		}
 	}
 }

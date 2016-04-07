@@ -9,23 +9,32 @@ import (
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 )
 
 func aveSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	glog.Info("[AVE] Query: ", query)
+	keywords := aveGuess(query)
 	wg := new(sync.WaitGroup)
-	re := regexp.MustCompile("(?i)([a-z2-3]{2,8})-?([s0-9]{2,5})")
-	matches := re.FindAllStringSubmatch(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), strings.ToUpper(match[2]))
+	for keyword := range keywords.Iter() {
 		wg.Add(1)
-		go func() {
+		go func(keyword string) {
 			defer wg.Done()
 			aveSearchKeyword(keyword, wg, metach)
-		}()
+		}(keyword.(string))
 	}
 	return wg
+}
+
+func aveGuess(query string) mapset.Set {
+	re := regexp.MustCompile("(?i)([a-z2-3]{2,8})-?([s0-9]{2,5})")
+	matches := re.FindAllStringSubmatch(query, -1)
+	keywords := mapset.NewSet()
+	for _, match := range matches {
+		keywords.Add(fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), strings.ToUpper(match[2])))
+	}
+	return keywords
 }
 
 func aveSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {

@@ -9,23 +9,33 @@ import (
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 )
 
 func tkhSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	glog.Info("[TKH] Query: ", query)
+
 	wg := new(sync.WaitGroup)
-	re := regexp.MustCompile("(?i)(tokyo.*hot.*|^)(k|n)(\\d{3,4})")
-	matches := re.FindAllStringSubmatch(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%s%04s", strings.ToLower(match[2]), match[3])
+	keywords := tkhGuess(query)
+	for keyword := range keywords.Iter() {
 		wg.Add(1)
-		go func() {
+		go func(keyword string) {
 			defer wg.Done()
 			tkhSearchKeyword(keyword, metach)
-		}()
+		}(keyword.(string))
 	}
 	return wg
+}
+
+func tkhGuess(query string) mapset.Set {
+	re := regexp.MustCompile("(?i)(tokyo.*hot.*|^)(k|n)(\\d{3,4})")
+	matches := re.FindAllStringSubmatch(query, -1)
+	keywords := mapset.NewSet()
+	for _, match := range matches {
+		keywords.Add(fmt.Sprintf("%s%04s", strings.ToLower(match[2]), match[3]))
+	}
+	return keywords
 }
 
 func tkhSearchKeyword(keyword string, metach chan MovieMeta) {

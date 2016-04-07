@@ -38,16 +38,14 @@ page.open(system.args[1], function(status) {
 
 func mgsSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	glog.Info("[MGS] Query: ", query)
+	keywords := dmmGuess(query)
 	wg := new(sync.WaitGroup)
-	re := regexp.MustCompile("(?i)(\\w{2,6}?)-?(\\d{2,5})")
-	matches := re.FindAllStringSubmatch(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
+	for keyword := range keywords.Iter() {
 		wg.Add(1)
-		go func() {
+		go func(keyword string) {
 			defer wg.Done()
 			mgsSearchKeyword(keyword, wg, metach)
-		}()
+		}(keyword.(string))
 	}
 	return wg
 }

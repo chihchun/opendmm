@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
@@ -14,16 +12,14 @@ import (
 
 func javSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	glog.Info("[JAV] Query: ", query)
+	keywords := dmmGuess(query)
 	wg := new(sync.WaitGroup)
-	re := regexp.MustCompile("(?i)([a-z]\\w{1,5}?)-?(\\d{2,5})")
-	matches := re.FindAllStringSubmatch(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
+	for keyword := range keywords.Iter() {
 		wg.Add(1)
-		go func() {
+		go func(keyword string) {
 			defer wg.Done()
 			javSearchKeyword(keyword, wg, metach)
-		}()
+		}(keyword.(string))
 	}
 	return wg
 }
@@ -69,7 +65,7 @@ func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan Mov
 				return span.Text()
 			})
 
-		if !isCodeEqual(keyword, meta.Code) {
+		if !dmmIsCodeEqual(keyword, meta.Code) {
 			glog.Warningf("[JAV] Code mismatch: Expected %s, got %s", keyword, meta.Code)
 		} else {
 			metach <- meta

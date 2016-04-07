@@ -5,27 +5,62 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 )
 
 func dmmSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	glog.Info("[DMM] Query: ", query)
+	keywords := dmmGuess(query)
 	wg := new(sync.WaitGroup)
-	re := regexp.MustCompile("(?i)([a-z]\\w{1,5}?)-?(\\d{2,5})")
-	matches := re.FindAllStringSubmatch(query, -1)
-	for _, match := range matches {
-		keyword := fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2])
+	for keyword := range keywords.Iter() {
 		wg.Add(1)
-		go func() {
+		go func(keyword string) {
 			defer wg.Done()
 			dmmSearchKeyword(keyword, wg, metach)
-		}()
+		}(keyword.(string))
 	}
 	return wg
+}
+
+func dmmGuess(query string) mapset.Set {
+	re := regexp.MustCompile("(?i)([a-z]\\w{1,5}?)-?(\\d{2,5})")
+	matches := re.FindAllStringSubmatch(query, -1)
+	keywords := mapset.NewSet()
+	for _, match := range matches {
+		keywords.Add(fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2]))
+	}
+	return keywords
+}
+
+func dmmIsCodeEqual(lcode, rcode string) bool {
+	re := regexp.MustCompile("(?i)([a-z]+)-(\\d+)")
+	lmeta := re.FindStringSubmatch(lcode)
+	rmeta := re.FindStringSubmatch(rcode)
+	glog.Info(lmeta)
+	glog.Info(rmeta)
+	if lmeta == nil || rmeta == nil {
+		return false
+	}
+	if lmeta[1] != rmeta[1] {
+		return false
+	}
+	lnum, err := strconv.Atoi(lmeta[2])
+	if err != nil {
+		glog.Errorf("[DMM] %s", err)
+		return false
+	}
+	rnum, err := strconv.Atoi(rmeta[2])
+	if err != nil {
+		glog.Errorf("[DMM] %s", err)
+		return false
+	}
+	return lnum == rnum
 }
 
 func dmmSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
@@ -106,7 +141,7 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 			}
 		})
 
-	if !isCodeEqual(keyword, meta.Code) {
+	if !dmmIsCodeEqual(keyword, meta.Code) {
 		glog.Warningf("[DMM] Code mismatch: Expected %s, got %s", keyword, meta.Code)
 	} else {
 		metach <- meta
