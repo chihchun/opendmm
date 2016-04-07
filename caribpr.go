@@ -37,6 +37,14 @@ func caribprGuess(query string) mapset.Set {
 	return keywords
 }
 
+func caribprGuessFull(query string) mapset.Set {
+	keywords := mapset.NewSet()
+	for keyword := range caribprGuess(query).Iter() {
+		keywords.Add(fmt.Sprintf("Caribpr %s", keyword))
+	}
+	return keywords
+}
+
 func caribprSearchKeyword(keyword string, metach chan MovieMeta) {
 	glog.Info("[CARIBPR] Keyword: ", keyword)
 	urlstr := fmt.Sprintf(

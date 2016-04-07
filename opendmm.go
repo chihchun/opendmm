@@ -3,6 +3,7 @@ package opendmm
 import (
 	"sync"
 
+	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 	"github.com/syndtr/goleveldb/leveldb"
 )
@@ -59,6 +60,19 @@ func Search(query string, cache *leveldb.DB) chan MovieMeta {
 		close(metach)
 	}()
 	return postprocess(metach)
+}
+
+// Guess possible movie codes from query string
+func Guess(query string) mapset.Set {
+	keywords := mapset.NewSet()
+	keywords = keywords.Union(aveGuess(query))
+	keywords = keywords.Union(caribGuessFull(query))
+	keywords = keywords.Union(caribprGuessFull(query))
+	keywords = keywords.Union(dmmGuess(query))
+	keywords = keywords.Union(heyzoGuessFull(query))
+	keywords = keywords.Union(opdGuessFull(query))
+	keywords = keywords.Union(tkhGuessFull(query))
+	return keywords
 }
 
 // Crawl movies that aren't searchable directly and cache into DB

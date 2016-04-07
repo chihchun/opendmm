@@ -38,6 +38,14 @@ func tkhGuess(query string) mapset.Set {
 	return keywords
 }
 
+func tkhGuessFull(query string) mapset.Set {
+	keywords := mapset.NewSet()
+	for keyword := range tkhGuess(query).Iter() {
+		keywords.Add(fmt.Sprintf("Tokyo Hot %s", keyword))
+	}
+	return keywords
+}
+
 func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
 	glog.Info("[TKH] Keyword: ", keyword)
 	urlstr := fmt.Sprintf(

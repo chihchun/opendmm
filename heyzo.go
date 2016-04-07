@@ -42,6 +42,14 @@ func heyzoGuess(query string) mapset.Set {
 	return keywords
 }
 
+func heyzoGuessFull(query string) mapset.Set {
+	keywords := mapset.NewSet()
+	for keyword := range heyzoGuess(query).Iter() {
+		keywords.Add(fmt.Sprintf("Heyzo %s", keyword))
+	}
+	return keywords
+}
+
 func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
 	glog.Info("[HEYZO] Keyword: ", keyword)
 	urlstr := fmt.Sprintf(

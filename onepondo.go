@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 	"github.com/junzh0u/httpx"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -28,6 +29,14 @@ func opdSearch(movieCache *leveldb.DB) SearchFunc {
 		}
 		return wg
 	}
+}
+
+func opdGuessFull(query string) mapset.Set {
+	keywords := mapset.NewSet()
+	for keyword := range caribprGuess(query).Iter() {
+		keywords.Add(fmt.Sprintf("1pondo %s", keyword))
+	}
+	return keywords
 }
 
 func opdSearchKeyword(
