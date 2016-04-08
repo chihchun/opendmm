@@ -48,6 +48,7 @@ func Search(query string, cache *leveldb.DB) chan MovieMeta {
 	wgs = append(wgs, heyzoSearch(query, metach))
 	wgs = append(wgs, javSearch(query, metach))
 	wgs = append(wgs, mgsSearch(query, metach))
+	wgs = append(wgs, niceageSearch(query, metach))
 	wgs = append(wgs, tkhSearch(query, metach))
 	if cache != nil {
 		wgs = append(wgs, opdSearch(cache)(query, metach))
