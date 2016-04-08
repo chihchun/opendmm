@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 	"github.com/junzh0u/httpx"
 )
@@ -38,7 +39,7 @@ page.open(system.args[1], function(status) {
 
 func mgsSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	glog.Info("[MGS] Query: ", query)
-	keywords := dmmGuess(query)
+	keywords := mgsGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
@@ -50,37 +51,55 @@ func mgsSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	return wg
 }
 
+func mgsGuess(query string) mapset.Set {
+	re := regexp.MustCompile("(?i)(\\w{2,7}?)-?(\\d{2,5})")
+	matches := re.FindAllStringSubmatch(query, -1)
+	keywords := mapset.NewSet()
+	for _, match := range matches {
+		keywords.Add(fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2]))
+	}
+	return keywords
+}
+
 func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	glog.Info("[MGS] Keyword: ", keyword)
-	urlstr := fmt.Sprintf(
-		"http://www.mgstage.com/search/search.php?search_word=%s&search_shop_id=shiroutotv",
-		url.QueryEscape(keyword),
-	)
-	glog.Info("[MGS] Search page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
-	if err != nil {
-		glog.Warningf("[MGS] Error parsing %s: %v", urlstr, err)
-		return
+	urlstrs := []string{
+		fmt.Sprintf(
+			"http://www.mgstage.com/search/search.php?search_word=%s&search_shop_id=shiroutotv",
+			url.QueryEscape(keyword),
+		),
+		fmt.Sprintf(
+			"http://www.mgstage.com/search/search.php?search_word=%s&search_shop_id=nanpatv",
+			url.QueryEscape(keyword),
+		),
 	}
+	for _, urlstr := range urlstrs {
+		glog.Info("[MGS] Search page: ", urlstr)
+		doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
+		if err != nil {
+			glog.Warningf("[MGS] Error parsing %s: %v", urlstr, err)
+			return
+		}
 
-	urlbase, err := url.Parse(urlstr)
-	doc.Find("ul.pickup_list > li > p.title > a").Each(
-		func(i int, a *goquery.Selection) {
-			href, ok := a.Attr("href")
-			if !ok {
-				return
-			}
-			urlhref, err := urlbase.Parse(href)
-			if err != nil {
-				glog.Warningf("[MGS] %s", err)
-				return
-			}
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				mgsParse(urlhref.String(), keyword, metach)
-			}()
-		})
+		urlbase, err := url.Parse(urlstr)
+		doc.Find("ul.pickup_list > li > p.title > a").Each(
+			func(i int, a *goquery.Selection) {
+				href, ok := a.Attr("href")
+				if !ok {
+					return
+				}
+				urlhref, err := urlbase.Parse(href)
+				if err != nil {
+					glog.Warningf("[MGS] %s", err)
+					return
+				}
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					mgsParse(urlhref.String(), keyword, metach)
+				}()
+			})
+	}
 }
 
 func mgsParse(urlstr string, keyword string, metach chan MovieMeta) {
