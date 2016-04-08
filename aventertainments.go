@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -28,11 +29,15 @@ func aveSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 }
 
 func aveGuess(query string) mapset.Set {
-	re := regexp.MustCompile("(?i)([a-z2-3]{2,8})-?([s0-9]{2,5})")
+	re := regexp.MustCompile("(?i)([a-z2-3]{2,8})-?(s?)(\\d{2,5})")
 	matches := re.FindAllStringSubmatch(query, -1)
 	keywords := mapset.NewSet()
 	for _, match := range matches {
-		keywords.Add(fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), strings.ToUpper(match[2])))
+		series := strings.ToUpper(match[1])
+		prefix := strings.ToUpper(match[2])
+		keywords.Add(fmt.Sprintf("%s-%s%s", series, prefix, match[3]))
+		number, _ := strconv.Atoi(match[3])
+		keywords.Add(fmt.Sprintf("%s-%s%d", series, prefix, number))
 	}
 	return keywords
 }
