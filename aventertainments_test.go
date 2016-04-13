@@ -12,6 +12,7 @@ func TestAventertainments(t *testing.T) {
 		"CW3D2DBD-30",
 		"MKBD-S97",
 		"LAFBD-030",
+		"BD-M08",
 	}
 	assertSearchable(t, queries, aveSearch)
 }

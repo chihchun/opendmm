@@ -29,7 +29,7 @@ func aveSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 }
 
 func aveGuess(query string) mapset.Set {
-	re := regexp.MustCompile("(?i)([a-z2-3]{2,8})-?(s?)(\\d{2,5})")
+	re := regexp.MustCompile("(?i)([a-z2-3]{2,8})-?([sm]?)(\\d{2,5})")
 	matches := re.FindAllStringSubmatch(query, -1)
 	keywords := mapset.NewSet()
 	for _, match := range matches {
