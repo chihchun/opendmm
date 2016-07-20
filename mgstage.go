@@ -117,7 +117,7 @@ func mgsParse(urlstr string, keyword string, metach chan MovieMeta) {
 	var meta MovieMeta
 	meta.Page = urlstr
 	meta.Title = doc.Find("#center_column h1.tag").Text()
-	meta.CoverImage, _ = doc.Find("#center_column img.enlarge_image").Attr("src")
+	meta.CoverImage, _ = doc.Find("#center_column a#EnlargeImage").Attr("href")
 
 	doc.Find("ul.detail_txt > li").Each(
 		func(i int, li *goquery.Selection) {
