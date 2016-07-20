@@ -72,6 +72,10 @@ func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 			"http://www.mgstage.com/search/search.php?search_word=%s&search_shop_id=nanpatv",
 			url.QueryEscape(keyword),
 		),
+		fmt.Sprintf(
+			"http://www.mgstage.com/search/search.php?search_word=%s",
+			url.QueryEscape(keyword),
+		),
 	}
 	for _, urlstr := range urlstrs {
 		glog.Info("[MGS] Search page: ", urlstr)
@@ -82,7 +86,7 @@ func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 		}
 
 		urlbase, err := url.Parse(urlstr)
-		doc.Find("ul.pickup_list > li > p.title > a").Each(
+		doc.Find("ul > li > p.title > a").Each(
 			func(i int, a *goquery.Selection) {
 				href, ok := a.Attr("href")
 				if !ok {
@@ -144,6 +148,36 @@ func mgsParse(urlstr string, keyword string, metach chan MovieMeta) {
 						meta.Code = value
 					}
 				}
+			}
+		})
+
+	doc.Find("div.detail_data > table > tbody > tr").Each(
+		func(i int, tr *goquery.Selection) {
+			th := tr.Find("th").First()
+			k := strings.TrimSpace(th.Text())
+			td := tr.Find("td").First()
+			if strings.Contains(k, "出演") {
+				meta.Actresses = td.Find("a").Map(
+					func(i int, a *goquery.Selection) string {
+						return a.Text()
+					})
+			} else if strings.Contains(k, "メーカー") {
+				meta.Maker = td.Text()
+			} else if strings.Contains(k, "収録時間") {
+				meta.MovieLength = td.Text()
+			} else if strings.Contains(k, "品番") {
+				meta.Code = td.Text()
+			} else if strings.Contains(k, "配信開始日") {
+				meta.ReleaseDate = td.Text()
+			} else if strings.Contains(k, "シリーズ") {
+				meta.Series = td.Text()
+			} else if strings.Contains(k, "レーベル") {
+				meta.Label = td.Text()
+			} else if strings.Contains(k, "ジャンル") {
+				meta.Genres = td.Find("a").Map(
+					func(i int, a *goquery.Selection) string {
+						return a.Text()
+					})
 			}
 		})
 
