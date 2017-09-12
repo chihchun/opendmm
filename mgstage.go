@@ -78,16 +78,28 @@ func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 		),
 	}
 	for _, urlstr := range urlstrs {
-		glog.Info("[MGS] Search page: ", urlstr)
-		doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
-		if err != nil {
-			glog.Warningf("[MGS] Error parsing %s: %v", urlstr, err)
-			return
-		}
+		wg.Add(1)
+		go func(urlstr string) {
+			defer wg.Done()
+			mgsParseSearchPage(keyword, urlstr, wg, metach)
+		}(urlstr)
+	}
+}
 
-		urlbase, err := url.Parse(urlstr)
-		doc.Find("ul > li > p.title > a").Each(
-			func(i int, a *goquery.Selection) {
+func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metach chan MovieMeta) {
+	glog.Info("[MGS] Search page: ", urlstr)
+	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
+	if err != nil {
+		glog.Warningf("[MGS] Error parsing %s: %v", urlstr, err)
+		return
+	}
+
+	urlbase, err := url.Parse(urlstr)
+	doc.Find("ul > li > p.title > a").Each(
+		func(i int, a *goquery.Selection) {
+			wg.Add(1)
+			go func(a *goquery.Selection) {
+				defer wg.Done()
 				href, ok := a.Attr("href")
 				if !ok {
 					return
@@ -100,13 +112,13 @@ func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					mgsParse(urlhref.String(), keyword, metach)
+					mgsParseProductPage(urlhref.String(), keyword, metach)
 				}()
-			})
-	}
+			}(a)
+		})
 }
 
-func mgsParse(urlstr string, keyword string, metach chan MovieMeta) {
+func mgsParseProductPage(urlstr string, keyword string, metach chan MovieMeta) {
 	glog.Info("[MGS] Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
 	if err != nil {
