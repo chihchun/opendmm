@@ -9,7 +9,7 @@ func TestOpendmmSearch(t *testing.T) {
 		"SDDE-201",
 	}
 	for _, query := range queries {
-		metach := Search(query, nil)
+		metach := Search(query)
 		meta, ok := <-metach
 		if !ok {
 			t.Errorf("%s not found", query)

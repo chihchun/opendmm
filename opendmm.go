@@ -4,8 +4,6 @@ import (
 	"sync"
 
 	"github.com/deckarep/golang-set"
-	"github.com/golang/glog"
-	"github.com/syndtr/goleveldb/leveldb"
 )
 
 // MovieMeta contains meta data of movie
@@ -34,11 +32,7 @@ type MovieMeta struct {
 type SearchFunc func(string, chan MovieMeta) *sync.WaitGroup
 
 // Search for movies based on query and return a channel of MovieMeta
-// Takes an additional leveldb DB pointer to perform search on some special
-// search engines, such as onepondo.
-// The DB can be generated using the Crawl API.
-// Passing a empty DB pointer will just skip those engines.
-func Search(query string, cache *leveldb.DB) chan MovieMeta {
+func Search(query string) chan MovieMeta {
 	metach := make(chan MovieMeta)
 	var wgs [](*sync.WaitGroup)
 	wgs = append(wgs, aveSearch(query, metach))
@@ -51,9 +45,6 @@ func Search(query string, cache *leveldb.DB) chan MovieMeta {
 	wgs = append(wgs, mgsSearch(query, metach))
 	wgs = append(wgs, niceageSearch(query, metach))
 	wgs = append(wgs, tkhSearch(query, metach))
-	if cache != nil {
-		wgs = append(wgs, opdSearch(cache)(query, metach))
-	}
 
 	go func() {
 		for _, wg := range wgs {
@@ -72,35 +63,6 @@ func Guess(query string) mapset.Set {
 	keywords = keywords.Union(caribprGuessFull(query))
 	keywords = keywords.Union(dmmGuess(query))
 	keywords = keywords.Union(heyzoGuessFull(query))
-	keywords = keywords.Union(opdGuessFull(query))
 	keywords = keywords.Union(tkhGuessFull(query))
 	return keywords
-}
-
-// Crawl movies that aren't searchable directly and cache into DB
-func Crawl(movieCachePath, httpCachePath string) {
-	httpCache, err := leveldb.OpenFile(httpCachePath, nil)
-	if err != nil {
-		glog.Fatal(err)
-	}
-	defer httpCache.Close()
-
-	metach := make(chan MovieMeta)
-	var wgs [](*sync.WaitGroup)
-	wgs = append(wgs, opdCrawl(httpCache, metach))
-	go func() {
-		for _, wg := range wgs {
-			wg.Wait()
-		}
-		close(metach)
-		httpCache.Close()
-	}()
-
-	movieCache, err := leveldb.OpenFile(movieCachePath, nil)
-	if err != nil {
-		glog.Fatal(err)
-	}
-	defer movieCache.Close()
-	for _ = range cacheIntoDB(movieCache)(postprocess(metach)) {
-	}
 }
