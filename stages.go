@@ -87,8 +87,23 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
 	return out
 }
 
+func normalizeURLFields(in chan MovieMeta) chan MovieMeta {
+	out := make(chan MovieMeta)
+	go func() {
+		defer close(out)
+		for meta := range in {
+			meta.CoverImage = normalizeURL(meta.CoverImage)
+			meta.Page = normalizeURL(meta.Page)
+			meta.SampleImages = normalizeURLs(meta.SampleImages)
+			meta.ThumbnailImage = normalizeURL(meta.ThumbnailImage)
+			out <- meta
+		}
+	}()
+	return out
+}
+
 func postprocess(in chan MovieMeta) chan MovieMeta {
-	return validateFields(trimSpaces(deduplicate(in)))
+	return normalizeURLFields(validateFields(trimSpaces(deduplicate(in))))
 }
 
 func cacheIntoDB(db *leveldb.DB) ProcessStage {

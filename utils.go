@@ -3,6 +3,7 @@ package opendmm
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -23,4 +24,20 @@ func newDocumentInUTF8(url string, getfunc func(string) (*http.Response, error))
 		return nil, err
 	}
 	return goquery.NewDocumentFromReader(strings.NewReader(body))
+}
+
+func normalizeURL(in string) string {
+	u, _ := url.Parse(in)
+	if u.Scheme == "" {
+		u.Scheme = "http"
+	}
+	return u.String()
+}
+
+func normalizeURLs(in []string) []string {
+	var out []string
+	for _, s := range in {
+		out = append(out, normalizeURL(s))
+	}
+	return out
 }
