@@ -29,7 +29,7 @@ func dmmSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 }
 
 func dmmGuess(query string) mapset.Set {
-	re := regexp.MustCompile("(?i)([a-z]\\w{1,5}?)[-_]?(\\d{2,5})")
+	re := regexp.MustCompile("(?i)([a-z][a-z0-9]{1,5}?)[-_]?(\\d{2,5})")
 	matches := re.FindAllStringSubmatch(query, -1)
 	keywords := mapset.NewSet()
 	for _, match := range matches {

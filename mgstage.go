@@ -52,7 +52,7 @@ func mgsSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 }
 
 func mgsGuess(query string) mapset.Set {
-	re := regexp.MustCompile("(?i)(\\w{2,7}?)-?(\\d{2,5})")
+	re := regexp.MustCompile("(?i)([a-z0-9]{2,7}?)-?(\\d{2,5})")
 	matches := re.FindAllStringSubmatch(query, -1)
 	keywords := mapset.NewSet()
 	for _, match := range matches {

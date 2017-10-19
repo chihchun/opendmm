@@ -14,6 +14,7 @@ func TestJavlibrary(t *testing.T) {
 		"IPZ687",
 		"9RKI365",
 		"WPE-037",
+		"0915-javbo.net_meyd182FHD",
 	}
 	assertSearchable(t, queries, javSearch)
 	blackhole := []string{

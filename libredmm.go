@@ -26,7 +26,7 @@ func libreSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 }
 
 func libreSearchKeyword(keyword string, metach chan MovieMeta) {
-	glog.Info("[CARIB] Keyword: ", keyword)
+	glog.Info("[LIBRE] Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"http://www.libredmm.com/products/%s.json",
 		url.QueryEscape(keyword),
