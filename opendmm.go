@@ -41,7 +41,6 @@ func Search(query string) chan MovieMeta {
 	wgs = append(wgs, dmmSearch(query, metach))
 	wgs = append(wgs, heyzoSearch(query, metach))
 	wgs = append(wgs, javSearch(query, metach))
-	wgs = append(wgs, libreSearch(query, metach))
 	wgs = append(wgs, mgsSearch(query, metach))
 	wgs = append(wgs, niceageSearch(query, metach))
 	wgs = append(wgs, tkhSearch(query, metach))
