@@ -27,6 +27,9 @@ func newDocumentInUTF8(url string, getfunc func(string) (*http.Response, error))
 }
 
 func normalizeURL(in string) string {
+	if in == "" {
+		return ""
+	}
 	u, _ := url.Parse(in)
 	if u.Scheme == "" {
 		u.Scheme = "http"
