@@ -71,13 +71,14 @@ func scuteParse(urlstr string, keyword string, metach chan MovieMeta) {
 	meta.CoverImage, _ = doc.Find("#js-sample > div.vjs-poster").Attr("style")
 	meta.Description = doc.Find("div.detail > article > p:nth-child(4)").Text()
 
-	coverRe := regexp.MustCompile("(?i)url\\((.+)\\)")
-	coverAttr, ok := doc.Find("#js-sample > div.vjs-poster").Attr("style")
-	if !ok {
-		return
+	bgStyle, ok := doc.Find("#js-sample > div.vjs-poster").Attr("style")
+	if ok {
+		re := regexp.MustCompile("(?i)url\\((.+)\\)")
+		match := re.FindStringSubmatch(bgStyle)
+		meta.CoverImage = match[1]
+	} else {
+		meta.CoverImage, _ = doc.Find("div.nosample > a > img").Attr("src")
 	}
-	coverMatch := coverRe.FindStringSubmatch(coverAttr)
-	meta.CoverImage = coverMatch[1]
 
 	doc.Find("div.cast > h5").Each(
 		func(i int, h *goquery.Selection) {
