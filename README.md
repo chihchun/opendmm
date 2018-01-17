@@ -3,11 +3,11 @@
 [![Build Status](https://travis-ci.org/junzh0u/opendmm.svg?branch=master)](https://travis-ci.org/junzh0u/opendmm)
 [![codecov](https://codecov.io/gh/junzh0u/opendmm/branch/master/graph/badge.svg)](https://codecov.io/gh/junzh0u/opendmm)
 
-The orgininal [OpenDMM](https://github.com/junzh0u/opendmm-rb) is a RubyGem which fetches AV metadata given a code.
+The original [OpenDMM](https://github.com/junzh0u/opendmm-rb) is a RubyGem which fetches AV metadata given a code (番号).
 
-The Go library does exact the same things, but faster.
+This Go library/CLI does exactly the same things, but faster.
 
-A CLI is avaiable via:
+## Installation & Usage
 
     $ go install github.com/junzh0u/opendmm/cmd/opendmm
     $ opendmm ABP-123
@@ -40,4 +40,4 @@ A CLI is avaiable via:
       "Title": "酒井ももか、満足度満点新人ソープ DX"
     }
 
-It's also available as a library, see [the code of CLI](https://github.com/junzh0u/opendmm/blob/master/cmd/opendmm/opendmm.go) for example usage.
+You can use it as a library. See [the CLI code](https://github.com/junzh0u/opendmm/blob/master/cmd/opendmm/opendmm.go) for example usage.
