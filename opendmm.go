@@ -45,6 +45,7 @@ func Search(query string) chan MovieMeta {
 	wgs = append(wgs, niceageSearch(query, metach))
 	wgs = append(wgs, tkhSearch(query, metach))
 	wgs = append(wgs, scuteSearch(query, metach))
+	wgs = append(wgs, fc2Search(query, metach))
 
 	go func() {
 		for _, wg := range wgs {
@@ -65,5 +66,6 @@ func Guess(query string) mapset.Set {
 	keywords = keywords.Union(heyzoGuessFull(query))
 	keywords = keywords.Union(tkhGuessFull(query))
 	keywords = keywords.Union(scuteGuessFull(query))
+	keywords = keywords.Union(fc2GuessFull(query))
 	return keywords
 }

@@ -68,7 +68,6 @@ func scuteParse(urlstr string, keyword string, metach chan MovieMeta) {
 	meta.Page = urlstr
 
 	meta.Title = doc.Find("span.title").Text()
-	meta.CoverImage, _ = doc.Find("#js-sample > div.vjs-poster").Attr("style")
 	meta.Description = doc.Find("div.detail > article > p:nth-child(4)").Text()
 
 	bgStyle, ok := doc.Find("#js-sample > div.vjs-poster").Attr("style")
