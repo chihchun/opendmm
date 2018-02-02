@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/junzh0u/opendmm.svg?branch=master)](https://travis-ci.org/junzh0u/opendmm)
 [![codecov](https://codecov.io/gh/junzh0u/opendmm/branch/master/graph/badge.svg)](https://codecov.io/gh/junzh0u/opendmm)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/junzh0u/opendmm/blob/master/LICENSE)
 
 The original [OpenDMM](https://github.com/junzh0u/opendmm-rb) is a RubyGem which fetches AV metadata given a code (番号).
 
