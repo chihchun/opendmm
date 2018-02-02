@@ -40,4 +40,4 @@ This Go library/CLI does exactly the same things, but faster.
       "Title": "酒井ももか、満足度満点新人ソープ DX"
     }
 
-You can use it as a library. See [the CLI code](https://github.com/junzh0u/opendmm/blob/master/cmd/opendmm/opendmm.go) for example usage.
+It's also available as a library. See [the CLI code](https://github.com/junzh0u/opendmm/blob/master/cmd/opendmm/opendmm.go) for example usage.
