@@ -1,14 +1,14 @@
 # OpenDMM
 
-[![Build Status](https://travis-ci.org/junzh0u/opendmm.svg?branch=master)](https://travis-ci.org/junzh0u/opendmm)
-[![codecov](https://codecov.io/gh/junzh0u/opendmm/branch/master/graph/badge.svg)](https://codecov.io/gh/junzh0u/opendmm)
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/junzh0u/opendmm/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/libredmm/opendmm.svg?branch=master)](https://travis-ci.org/libredmm/opendmm)
+[![codecov](https://codecov.io/gh/libredmm/opendmm/branch/master/graph/badge.svg)](https://codecov.io/gh/libredmm/opendmm)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/libredmm/opendmm/blob/master/LICENSE)
 
 This Go Librady/CLI fetches AV metadata given a code (番号).
 
 ## Installation & Usage
 
-    $ go install github.com/junzh0u/opendmm/cmd/opendmm
+    $ go install github.com/libredmm/opendmm/cmd/opendmm
     $ opendmm ABP-123
     {
       "Actresses": [
@@ -39,4 +39,4 @@ This Go Librady/CLI fetches AV metadata given a code (番号).
       "Title": "酒井ももか、満足度満点新人ソープ DX"
     }
 
-It's also available as a library. See [the CLI code](https://github.com/junzh0u/opendmm/blob/master/cmd/opendmm/opendmm.go) for example usage.
+It's also available as a library. See [the CLI code](https://github.com/libredmm/opendmm/blob/master/cmd/opendmm/opendmm.go) for example usage.

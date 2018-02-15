@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/junzh0u/opendmm"
+	"github.com/libredmm/opendmm"
 )
 
 func search(query string, timeout time.Duration) {

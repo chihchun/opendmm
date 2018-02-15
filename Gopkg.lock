@@ -4,8 +4,8 @@
 [[projects]]
   name = "github.com/PuerkitoBio/goquery"
   packages = ["."]
-  revision = "e1271ee34c6a305e38566ecd27ae374944907ee9"
-  version = "v1.1.0"
+  revision = "09540e565986583836b5fc792fe951ec5fd201dd"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
@@ -16,8 +16,8 @@
 [[projects]]
   name = "github.com/deckarep/golang-set"
   packages = ["."]
-  revision = "fc8930a5e645572ee00bf66358ed3414f3c13b90"
-  version = "v1.6"
+  revision = "1d4478f51bed434f1dadf96dcd9b43aabac66795"
+  version = "v1.7"
 
 [[projects]]
   branch = "master"
@@ -35,7 +35,7 @@
   branch = "master"
   name = "github.com/junzh0u/httpx"
   packages = ["."]
-  revision = "27b25b438a6db954287822494c595018a73423f5"
+  revision = "3836d4dff27a16f008bf851c042a223d6db916d7"
 
 [[projects]]
   branch = "master"
@@ -46,24 +46,59 @@
 [[projects]]
   branch = "master"
   name = "github.com/syndtr/goleveldb"
-  packages = ["leveldb","leveldb/cache","leveldb/comparer","leveldb/errors","leveldb/filter","leveldb/iterator","leveldb/journal","leveldb/memdb","leveldb/opt","leveldb/storage","leveldb/table","leveldb/util"]
-  revision = "b89cc31ef7977104127d34c1bd31ebd1a9db2199"
+  packages = [
+    "leveldb",
+    "leveldb/cache",
+    "leveldb/comparer",
+    "leveldb/errors",
+    "leveldb/filter",
+    "leveldb/iterator",
+    "leveldb/journal",
+    "leveldb/memdb",
+    "leveldb/opt",
+    "leveldb/storage",
+    "leveldb/table",
+    "leveldb/util"
+  ]
+  revision = "211f780988068502fe874c44dae530528ebd840f"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["html","html/atom","html/charset"]
-  revision = "cd69bc3fc700721b709c3a59e16e24c67b58f6ff"
+  packages = [
+    "html",
+    "html/atom",
+    "html/charset"
+  ]
+  revision = "dc948dff8834a7fe1ca525f8d04e261c2b56e70d"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
-  packages = ["encoding","encoding/charmap","encoding/htmlindex","encoding/internal","encoding/internal/identifier","encoding/japanese","encoding/korean","encoding/simplifiedchinese","encoding/traditionalchinese","encoding/unicode","internal/gen","internal/tag","internal/utf8internal","language","runes","transform","unicode/cldr"]
-  revision = "c01e4764d870b77f8abe5096ee19ad20d80e8075"
+  packages = [
+    "encoding",
+    "encoding/charmap",
+    "encoding/htmlindex",
+    "encoding/internal",
+    "encoding/internal/identifier",
+    "encoding/japanese",
+    "encoding/korean",
+    "encoding/simplifiedchinese",
+    "encoding/traditionalchinese",
+    "encoding/unicode",
+    "internal/gen",
+    "internal/tag",
+    "internal/utf8internal",
+    "language",
+    "runes",
+    "transform",
+    "unicode/cldr"
+  ]
+  revision = "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fd2185c3c01c1f6c75e846b26973ef1417ffff9837d71b5ca07c5e8c581dba41"
+  inputs-digest = "0cac19e411f872541817f058b2ae6583e0706c1fae9be8417f157dfcf0ef4202"
   solver-name = "gps-cdcl"
   solver-version = 1
