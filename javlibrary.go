@@ -15,9 +15,11 @@ func javSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	keywords := dmmGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
+		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
+			defer func() { workerPool <- 1 }()
 			javSearchKeyword(keyword, wg, metach)
 		}(keyword.(string))
 	}

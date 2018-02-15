@@ -28,6 +28,15 @@ type MovieMeta struct {
 	Title          string
 }
 
+var workerPoolSize = 1000
+var workerPool = make(chan int, workerPoolSize)
+
+func init() {
+	for i := 1; i <= workerPoolSize; i++ {
+		workerPool <- 1
+	}
+}
+
 // SearchFunc is the interface of each engine's search function
 type SearchFunc func(string, chan MovieMeta) *sync.WaitGroup
 
@@ -35,17 +44,21 @@ type SearchFunc func(string, chan MovieMeta) *sync.WaitGroup
 func Search(query string) chan MovieMeta {
 	metach := make(chan MovieMeta)
 	var wgs [](*sync.WaitGroup)
-	wgs = append(wgs, aveSearch(query, metach))
-	wgs = append(wgs, caribSearch(query, metach))
-	wgs = append(wgs, caribprSearch(query, metach))
-	wgs = append(wgs, dmmSearch(query, metach))
-	wgs = append(wgs, heyzoSearch(query, metach))
-	wgs = append(wgs, javSearch(query, metach))
-	wgs = append(wgs, mgsSearch(query, metach))
-	wgs = append(wgs, niceageSearch(query, metach))
-	wgs = append(wgs, tkhSearch(query, metach))
-	wgs = append(wgs, scuteSearch(query, metach))
-	wgs = append(wgs, fc2Search(query, metach))
+	for _, handler := range []SearchFunc{
+		aveSearch,
+		caribSearch,
+		caribprSearch,
+		dmmSearch,
+		fc2Search,
+		heyzoSearch,
+		javSearch,
+		mgsSearch,
+		niceageSearch,
+		scuteSearch,
+		tkhSearch,
+	} {
+		wgs = append(wgs, handler(query, metach))
+	}
 
 	go func() {
 		for _, wg := range wgs {
@@ -55,6 +68,9 @@ func Search(query string) chan MovieMeta {
 	}()
 	return postprocess(metach)
 }
+
+// GuessFunc is the interface of each engine's guess function
+type GuessFunc func(string) mapset.Set
 
 // Guess possible movie codes from query string
 func Guess(query string) mapset.Set {

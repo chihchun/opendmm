@@ -19,9 +19,11 @@ func aveSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	keywords := aveGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
+		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
+			defer func() { workerPool <- 1 }()
 			aveSearchKeyword(keyword, wg, metach)
 		}(keyword.(string))
 	}

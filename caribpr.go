@@ -18,9 +18,11 @@ func caribprSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
 	keywords := caribprGuess(query)
 	for keyword := range keywords.Iter() {
+		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
+			defer func() { workerPool <- 1 }()
 			caribprSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}

@@ -17,9 +17,11 @@ func fc2Search(query string, metach chan MovieMeta) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
 	keywords := fc2Guess(query)
 	for keyword := range keywords.Iter() {
+		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
+			defer func() { workerPool <- 1 }()
 			fc2SearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}

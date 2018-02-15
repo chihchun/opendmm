@@ -18,9 +18,11 @@ func heyzoSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	keywords := heyzoGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
+		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
+			defer func() { workerPool <- 1 }()
 			heyzoSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}

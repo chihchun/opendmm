@@ -18,3 +18,17 @@ func TestOpendmmSearch(t *testing.T) {
 		}
 	}
 }
+
+func TestOpendmmGuess(t *testing.T) {
+	queries := []string{
+		"SDDE-201",
+	}
+	for _, query := range queries {
+		if !Guess(query + "_suffix").Contains(query) {
+			t.Errorf("Guessed wrong code for %s with suffix", query)
+		}
+		if !Guess("prefix_" + query).Contains(query) {
+			t.Errorf("Guessed wrong code for %s with prefix", query)
+		}
+	}
+}

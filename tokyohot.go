@@ -19,9 +19,11 @@ func tkhSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
 	keywords := tkhGuess(query)
 	for keyword := range keywords.Iter() {
+		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
+			defer func() { workerPool <- 1 }()
 			tkhSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}

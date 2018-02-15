@@ -19,9 +19,11 @@ func scuteSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
 	keywords := scuteGuess(query)
 	for keyword := range keywords.Iter() {
+		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
+			defer func() { workerPool <- 1 }()
 			scuteSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
