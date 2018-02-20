@@ -35,7 +35,7 @@ func dmmGuess(query string) mapset.Set {
 	matches := re.FindAllStringSubmatch(query, -1)
 	keywords := mapset.NewSet()
 	for _, match := range matches {
-		keywords.Add(fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2]))
+		keywords.Add(fmt.Sprintf("%s-%03s", strings.ToUpper(match[1]), match[2]))
 	}
 	return keywords
 }
