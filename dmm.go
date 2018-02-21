@@ -31,11 +31,18 @@ func dmmSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
 }
 
 func dmmGuess(query string) mapset.Set {
-	re := regexp.MustCompile("(?i)([a-z][a-z0-9]{1,5}?)[-_]?0*(\\d{2,5})")
+	re := regexp.MustCompile("(?i)([a-z][a-z0-9]{1,5}?)[-_]?(0*(\\d{2,5}))")
 	matches := re.FindAllStringSubmatch(query, -1)
 	keywords := mapset.NewSet()
 	for _, match := range matches {
-		keywords.Add(fmt.Sprintf("%s-%05s", strings.ToUpper(match[1]), match[2]))
+		series := strings.ToUpper(match[1])
+		num := match[2]
+		if len(num) < 3 {
+			num = fmt.Sprintf("%03s", num)
+		} else if len(num) > 5 {
+			num = fmt.Sprintf("%05s", matches[3])
+		}
+		keywords.Add(fmt.Sprintf("%s-%s", series, num))
 	}
 	return keywords
 }
