@@ -10,16 +10,25 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/libredmm/opendmm"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
-func searchHandler(timeout time.Duration) http.HandlerFunc {
+func searchHandler(timeout time.Duration, db *leveldb.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query().Get("q")
+		metajson, err := db.Get([]byte(q), nil)
+		if err == nil {
+			glog.Infof("Hit cache: %s", q)
+			fmt.Fprintf(w, string(metajson))
+			return
+		}
+
 		metach := opendmm.Search(q)
 		select {
 		case meta, ok := <-metach:
 			if ok {
 				metajson, _ := json.MarshalIndent(meta, "", "  ")
+				db.Put([]byte(q), metajson, nil)
 				fmt.Fprintf(w, string(metajson))
 			} else {
 				w.WriteHeader(http.StatusNotFound)
@@ -48,7 +57,13 @@ func main() {
 	timeout := flag.Duration("timeout", 30*time.Second, "Timeout of Search API")
 	flag.Parse()
 
-	http.HandleFunc("/search", searchHandler(*timeout))
+	db, err := leveldb.OpenFile("opendmmd.leveldb", nil)
+	if err != nil {
+		glog.Fatal("Failed to open DB")
+	}
+	defer db.Close()
+
+	http.HandleFunc("/search", searchHandler(*timeout, db))
 	http.HandleFunc("/guess", guessHandler)
 	glog.Fatal(http.ListenAndServe(":"+port, nil))
 }

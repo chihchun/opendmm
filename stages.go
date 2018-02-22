@@ -1,13 +1,11 @@
 package opendmm
 
 import (
-	"encoding/json"
 	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/syndtr/goleveldb/leveldb"
 )
 
 // ProcessStage is a pipe of MovieMeta
@@ -104,24 +102,4 @@ func normalizeURLFields(in chan MovieMeta) chan MovieMeta {
 
 func postprocess(in chan MovieMeta) chan MovieMeta {
 	return normalizeURLFields(validateFields(trimSpaces(deduplicate(in))))
-}
-
-func cacheIntoDB(db *leveldb.DB) ProcessStage {
-	return func(in chan MovieMeta) chan MovieMeta {
-		out := make(chan MovieMeta)
-		go func() {
-			defer close(out)
-			for meta := range in {
-				glog.Infof("[STAGE] Caching into DB: %s", meta.Code)
-				bdata, err := json.Marshal(meta)
-				if err != nil {
-					glog.Errorf("[STAGE] Cache failed (%s): %+v", err, meta)
-					continue
-				}
-				db.Put([]byte(meta.Code), bdata, nil)
-				out <- meta
-			}
-		}()
-		return out
-	}
 }
