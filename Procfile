@@ -1,1 +1,1 @@
-web: opendmmd
+web: opendmmd -logtostderr
