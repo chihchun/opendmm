@@ -40,7 +40,7 @@ func dmmGuess(query string) mapset.Set {
 		if len(num) < 3 {
 			num = fmt.Sprintf("%03s", num)
 		} else if len(num) > 5 {
-			num = fmt.Sprintf("%05s", matches[3])
+			num = fmt.Sprintf("%05s", num)
 		}
 		keywords.Add(fmt.Sprintf("%s-%s", series, num))
 	}
