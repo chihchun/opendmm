@@ -12,7 +12,7 @@ import (
 )
 
 func fc2Search(query string, metach chan MovieMeta) {
-	glog.Info("[FC2] Query: ", query)
+	glog.Info("Query: ", query)
 
 	wg := new(sync.WaitGroup)
 	keywords := fc2Guess(query)
@@ -50,7 +50,7 @@ func fc2GuessFull(query string) mapset.Set {
 }
 
 func fc2SearchKeyword(keyword string, metach chan MovieMeta) {
-	glog.Info("[FC2] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"http://adult.contents.fc2.com/article_search.php?id=%s",
 		url.QueryEscape(keyword),
@@ -59,10 +59,10 @@ func fc2SearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func fc2Parse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("[FC2] Product page: ", urlstr)
+	glog.Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[FC2] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 

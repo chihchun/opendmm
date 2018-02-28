@@ -13,7 +13,7 @@ import (
 )
 
 func opdSearch(query string, metach chan MovieMeta) {
-	glog.Info("[OPD] Query: ", query)
+	glog.Info("Query: ", query)
 	wg := new(sync.WaitGroup)
 	keywords := opdGuess(query)
 	for keyword := range keywords.Iter() {
@@ -45,7 +45,7 @@ func opdGuessFull(query string) mapset.Set {
 }
 
 func opdSearchKeyword(keyword string, metach chan MovieMeta) {
-	glog.Info("[OPD] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"https://www.1pondo.tv/movies/%s/",
 		url.QueryEscape(keyword),
@@ -54,10 +54,10 @@ func opdSearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func opdParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("[OPD] Product page: ", urlstr)
+	glog.Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, httpx.GetFullPage)
 	if err != nil {
-		glog.Warningf("[OPD] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 

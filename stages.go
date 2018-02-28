@@ -16,7 +16,7 @@ func deduplicate(in chan MovieMeta) chan MovieMeta {
 	go func() {
 		defer close(out)
 		for meta := range in {
-			glog.Infof("[STAGE] Deduplicate: %s", meta.Code)
+			glog.Infof("Deduplicate: %s", meta.Code)
 			segments := regexp.MustCompile("\\s").Split(meta.Title, -1)
 			for i, segment := range segments {
 				if segment == meta.Code {
@@ -42,7 +42,7 @@ func trimSpaces(in chan MovieMeta) chan MovieMeta {
 	go func() {
 		defer close(out)
 		for meta := range in {
-			glog.Infof("[STAGE] Trim spaces: %s", meta.Code)
+			glog.Infof("Trim spaces: %s", meta.Code)
 
 			value := reflect.ValueOf(&meta).Elem()
 			for fi := 0; fi < value.NumField(); fi++ {
@@ -74,9 +74,9 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
 	go func() {
 		defer close(out)
 		for meta := range in {
-			glog.Infof("[STAGE] Validate fields: %s", meta.Code)
+			glog.Infof("Validate fields: %s", meta.Code)
 			if meta.Code == "" || meta.Title == "" || meta.CoverImage == "" {
-				glog.Warningf("[STAGE] Validate failed: %+v", meta)
+				glog.Warningf("Validate failed: %+v", meta)
 			} else {
 				out <- meta
 			}

@@ -14,7 +14,7 @@ import (
 )
 
 func caribSearch(query string, metach chan MovieMeta) {
-	glog.Info("[CARIB] Query: ", query)
+	glog.Info("Query: ", query)
 	wg := new(sync.WaitGroup)
 	keywords := caribGuess(query)
 	for keyword := range keywords.Iter() {
@@ -46,7 +46,7 @@ func caribGuessFull(query string) mapset.Set {
 }
 
 func caribSearchKeyword(keyword string, metach chan MovieMeta) {
-	glog.Info("[CARIB] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"http://www.caribbeancom.com/moviepages/%s/index.html",
 		url.QueryEscape(keyword),
@@ -55,10 +55,10 @@ func caribSearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func caribParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("[CARIB] Product page: ", urlstr)
+	glog.Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[CARIB] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 

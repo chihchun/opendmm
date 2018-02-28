@@ -11,7 +11,7 @@ import (
 )
 
 func javSearch(query string, metach chan MovieMeta) {
-	glog.Info("[JAV] Query: ", query)
+	glog.Info("Query: ", query)
 	keywords := dmmGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
@@ -25,7 +25,7 @@ func javSearch(query string, metach chan MovieMeta) {
 }
 
 func javSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("[JAV] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"http://www.javlibrary.com/ja/vl_searchbyid.php?keyword=%s",
 		url.QueryEscape(keyword),
@@ -34,10 +34,10 @@ func javSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 }
 
 func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("[JAV] Product/Search page: ", urlstr)
+	glog.Info("Product/Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[JAV] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -66,14 +66,14 @@ func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan Mov
 			})
 
 		if !dmmIsCodeEqual(keyword, meta.Code) {
-			glog.Warningf("[JAV] Code mismatch: Expected %s, got %s", keyword, meta.Code)
+			glog.Warningf("Code mismatch: Expected %s, got %s", keyword, meta.Code)
 		} else {
 			metach <- meta
 		}
 	} else {
 		urlbase, err := url.Parse(urlstr)
 		if err != nil {
-			glog.Errorf("[JAV] %s", err)
+			glog.Error(err)
 			return
 		}
 		doc.Find("div.videothumblist > div.videos > div.video > a").Each(
@@ -84,7 +84,7 @@ func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan Mov
 				}
 				urlhref, err := urlbase.Parse(href)
 				if err != nil {
-					glog.Errorf("[JAV] %s", err)
+					glog.Error(err)
 					return
 				}
 				wg.Add(1)

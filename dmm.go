@@ -15,7 +15,7 @@ import (
 )
 
 func dmmSearch(query string, metach chan MovieMeta) {
-	glog.Info("[DMM] Query: ", query)
+	glog.Info("Query: ", query)
 	keywords := dmmGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
@@ -59,27 +59,27 @@ func dmmIsCodeEqual(lcode, rcode string) bool {
 	}
 	lnum, err := strconv.Atoi(lmeta[2])
 	if err != nil {
-		glog.Errorf("[DMM] %s", err)
+		glog.Error(err)
 		return false
 	}
 	rnum, err := strconv.Atoi(rmeta[2])
 	if err != nil {
-		glog.Errorf("[DMM] %s", err)
+		glog.Error(err)
 		return false
 	}
 	return lnum == rnum
 }
 
 func dmmSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("[DMM] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"http://www.dmm.co.jp/search/=/searchstr=%s",
 		url.QueryEscape(keyword),
 	)
-	glog.Info("[DMM] Search page: ", urlstr)
+	glog.Info("Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[DMM] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -97,10 +97,10 @@ func dmmSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 }
 
 func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("[DMM] Product page: ", urlstr)
+	glog.Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[DMM] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -149,7 +149,7 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 		})
 
 	if !dmmIsCodeEqual(keyword, meta.Code) {
-		glog.Warningf("[DMM] Code mismatch: Expected %s, got %s", keyword, meta.Code)
+		glog.Warningf("Code mismatch: Expected %s, got %s", keyword, meta.Code)
 	} else {
 		metach <- meta
 	}

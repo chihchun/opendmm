@@ -38,7 +38,7 @@ page.open(system.args[1], function(status) {
 )
 
 func mgsSearch(query string, metach chan MovieMeta) {
-	glog.Info("[MGS] Query: ", query)
+	glog.Info("Query: ", query)
 	keywords := mgsGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
@@ -62,7 +62,7 @@ func mgsGuess(query string) mapset.Set {
 }
 
 func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("[MGS] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstrs := []string{
 		fmt.Sprintf(
 			"http://www.mgstage.com/search/search.php?search_word=%s&search_shop_id=shiroutotv",
@@ -87,10 +87,10 @@ func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 }
 
 func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("[MGS] Search page: ", urlstr)
+	glog.Info("Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
 	if err != nil {
-		glog.Warningf("[MGS] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -106,7 +106,7 @@ func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metac
 				}
 				urlhref, err := urlbase.Parse(href)
 				if err != nil {
-					glog.Warningf("[MGS] %s", err)
+					glog.Warning(err)
 					return
 				}
 				wg.Add(1)
@@ -119,10 +119,10 @@ func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metac
 }
 
 func mgsParseProductPage(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("[MGS] Product page: ", urlstr)
+	glog.Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
 	if err != nil {
-		glog.Warningf("[MGS] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 

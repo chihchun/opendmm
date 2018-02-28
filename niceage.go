@@ -13,7 +13,7 @@ import (
 )
 
 func niceageSearch(query string, metach chan MovieMeta) {
-	glog.Info("[NICEAGE] Query: ", query)
+	glog.Info("Query: ", query)
 	keywords := dmmGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
@@ -27,33 +27,33 @@ func niceageSearch(query string, metach chan MovieMeta) {
 }
 
 func niceageSearchKeyword(keyword string, metach chan MovieMeta) {
-	glog.Info("[NICEAGE] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf("http://nice-age.net/%s.html", keyword)
 	niceageParse(urlstr, metach)
 }
 
 func niceageParse(urlstr string, metach chan MovieMeta) {
-	glog.Info("[NICEAGE] Product page: ", urlstr)
+	glog.Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[NICEAGE] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
 	var meta MovieMeta
 	urlbase, err := url.Parse(urlstr)
 	if err != nil {
-		glog.Errorf("[NICEAGE] %s", err)
+		glog.Error(err)
 		return
 	}
 	imageHref, ok := doc.Find("#detail > div > a > img").Attr("src")
 	if !ok {
-		glog.Errorf("[NICEAGE] no cover image")
+		glog.Errorf("no cover image")
 		return
 	}
 	urlimage, err := urlbase.Parse(imageHref)
 	if err != nil {
-		glog.Errorf("[NICEAGE] %s", err)
+		glog.Error(err)
 		return
 	}
 	meta.CoverImage = urlimage.String()

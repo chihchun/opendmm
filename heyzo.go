@@ -14,7 +14,7 @@ import (
 )
 
 func heyzoSearch(query string, metach chan MovieMeta) {
-	glog.Info("[HEYZO] Query: ", query)
+	glog.Info("Query: ", query)
 	keywords := heyzoGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
@@ -51,7 +51,7 @@ func heyzoGuessFull(query string) mapset.Set {
 }
 
 func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
-	glog.Info("[HEYZO] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"http://www.heyzo.com/moviepages/%s/index.html",
 		url.QueryEscape(keyword),
@@ -60,10 +60,10 @@ func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func heyzoParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("[HEYZO] Product page: ", urlstr)
+	glog.Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[HEYZO] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 

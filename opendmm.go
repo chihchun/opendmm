@@ -1,6 +1,8 @@
 package opendmm
 
 import (
+	"sync"
+
 	"github.com/deckarep/golang-set"
 )
 
@@ -31,6 +33,7 @@ type searchFunc func(string, chan MovieMeta)
 type searchRequest struct {
 	query string
 	out   chan MovieMeta
+	wg    *sync.WaitGroup
 }
 
 var reqCh chan searchRequest
@@ -57,14 +60,20 @@ func init() {
 		go func(minion searchFunc) {
 			for req := range minionCh {
 				minion(req.query, req.out)
+				req.wg.Done()
 			}
 		}(minion)
 	}
 	go func() {
 		for req := range reqCh {
 			for _, minionCh := range minionChs {
+				req.wg.Add(1)
 				minionCh <- req
 			}
+			go func(req searchRequest) {
+				req.wg.Wait()
+				close(req.out)
+			}(req)
 		}
 	}()
 }
@@ -72,7 +81,7 @@ func init() {
 // Search for movies based on query and return a channel of MovieMeta
 func Search(query string) chan MovieMeta {
 	out := make(chan MovieMeta, 100)
-	req := searchRequest{query, out}
+	req := searchRequest{query, out, new(sync.WaitGroup)}
 	reqCh <- req
 	return postprocess(out)
 }

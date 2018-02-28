@@ -15,7 +15,7 @@ import (
 )
 
 func aveSearch(query string, metach chan MovieMeta) {
-	glog.Info("[AVE] Query: ", query)
+	glog.Info("Query: ", query)
 	keywords := aveGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
@@ -43,15 +43,15 @@ func aveGuess(query string) mapset.Set {
 }
 
 func aveSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("[AVE] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"http://www.aventertainments.com/search_Products.aspx?keyword=%s",
 		url.QueryEscape(keyword),
 	)
-	glog.Info("[AVE] Search page: ", urlstr)
+	glog.Info("Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[AVE] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -69,10 +69,10 @@ func aveSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 }
 
 func aveParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("[AVE] Product page: ", urlstr)
+	glog.Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[AVE] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -105,7 +105,7 @@ func aveParse(urlstr string, keyword string, metach chan MovieMeta) {
 		})
 
 	if strings.TrimSpace(meta.Code) != keyword {
-		glog.Warningf("[AVE] Code mismatch: Expected %s, got %s", keyword, meta.Code)
+		glog.Warningf("Code mismatch: Expected %s, got %s", keyword, meta.Code)
 	} else {
 		metach <- meta
 	}

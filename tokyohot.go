@@ -14,7 +14,7 @@ import (
 )
 
 func tkhSearch(query string, metach chan MovieMeta) {
-	glog.Info("[TKH] Query: ", query)
+	glog.Info("Query: ", query)
 
 	wg := new(sync.WaitGroup)
 	keywords := tkhGuess(query)
@@ -47,15 +47,15 @@ func tkhGuessFull(query string) mapset.Set {
 }
 
 func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
-	glog.Info("[TKH] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"http://www.tokyo-hot.com/product/?q=%s",
 		url.QueryEscape(keyword),
 	)
-	glog.Info("[TKH] Search page: ", urlstr)
+	glog.Info("Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[TKH] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -74,10 +74,10 @@ func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func tkhParse(urlstr string, metach chan MovieMeta) {
-	glog.Info("[TKH] Product page: ", urlstr)
+	glog.Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("[TKH] Error parsing %s: %v", urlstr, err)
+		glog.Warningf("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
