@@ -57,12 +57,14 @@ func init() {
 	} {
 		minionCh := make(chan searchRequest, 100)
 		minionChs = append(minionChs, minionCh)
-		go func(minion searchFunc) {
-			for req := range minionCh {
-				minion(req.query, req.out)
-				req.wg.Done()
-			}
-		}(minion)
+		for i := 0; i < 3; i++ {
+			go func(minion searchFunc) {
+				for req := range minionCh {
+					minion(req.query, req.out)
+					req.wg.Done()
+				}
+			}(minion)
+		}
 	}
 	go func() {
 		for req := range reqCh {
