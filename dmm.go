@@ -29,7 +29,7 @@ func dmmSearch(query string, metach chan MovieMeta) {
 }
 
 func dmmGuess(query string) mapset.Set {
-	re := regexp.MustCompile("(?i)([a-z][a-z0-9]{1,5}?)[-_]?(0*(\\d{2,5}))")
+	re := regexp.MustCompile("(?i)([a-z][a-z0-9]{1,7}?)[-_]?(0*(\\d{2,5}))")
 	matches := re.FindAllStringSubmatch(query, -1)
 	keywords := mapset.NewSet()
 	for _, match := range matches {
@@ -107,7 +107,7 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 	var meta MovieMeta
 	var ok bool
 	meta.Page = urlstr
-	meta.Title = doc.Find("#title").Text()
+	meta.Title = doc.Find(".area-headline h1").Text()
 	meta.ThumbnailImage, _ = doc.Find("#sample-video img").Attr("src")
 	meta.CoverImage, ok = doc.Find("#sample-video a").Attr("href")
 	if !ok {
