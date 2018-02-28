@@ -35,12 +35,9 @@ func dmmGuess(query string) mapset.Set {
 	for _, match := range matches {
 		series := strings.ToUpper(match[1])
 		num := match[2]
-		if len(num) < 3 {
-			num = fmt.Sprintf("%03s", num)
-		} else if len(num) > 5 {
-			num = fmt.Sprintf("%05s", num)
-		}
-		keywords.Add(fmt.Sprintf("%s-%s", series, num))
+		keywords.Add(fmt.Sprintf("%s-%03s", series, num))
+		keywords.Add(fmt.Sprintf("%s-%04s", series, num))
+		keywords.Add(fmt.Sprintf("%s-%05s", series, num))
 	}
 	return keywords
 }
