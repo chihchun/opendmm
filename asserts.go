@@ -4,12 +4,11 @@ import (
 	"testing"
 )
 
-func assertSearchable(t *testing.T, queries []string, search SearchFunc) {
+func assertSearchable(t *testing.T, queries []string, search searchFunc) {
 	for _, query := range queries {
 		metach := make(chan MovieMeta)
-		wg := search(query, metach)
 		go func() {
-			wg.Wait()
+			search(query, metach)
 			close(metach)
 		}()
 		meta, ok := <-postprocess(metach)
@@ -21,12 +20,11 @@ func assertSearchable(t *testing.T, queries []string, search SearchFunc) {
 	}
 }
 
-func assertUnsearchable(t *testing.T, queries []string, search SearchFunc) {
+func assertUnsearchable(t *testing.T, queries []string, search searchFunc) {
 	for _, query := range queries {
 		metach := make(chan MovieMeta)
-		wg := search(query, metach)
 		go func() {
-			wg.Wait()
+			search(query, metach)
 			close(metach)
 		}()
 		meta, ok := <-postprocess(metach)

@@ -13,21 +13,19 @@ import (
 	"github.com/junzh0u/httpx"
 )
 
-func scuteSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+func scuteSearch(query string, metach chan MovieMeta) {
 	glog.Info("[S-Cute] Query: ", query)
 
 	wg := new(sync.WaitGroup)
 	keywords := scuteGuess(query)
 	for keyword := range keywords.Iter() {
-		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
-			defer func() { workerPool <- 1 }()
 			scuteSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	return wg
+	wg.Wait()
 }
 
 func scuteGuess(query string) mapset.Set {

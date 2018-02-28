@@ -44,3 +44,10 @@ func normalizeURLs(in []string) []string {
 	}
 	return out
 }
+
+func unblockingSend(meta MovieMeta, metach chan MovieMeta) {
+	select {
+	case metach <- meta:
+	default:
+	}
+}

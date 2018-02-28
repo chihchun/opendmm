@@ -37,20 +37,18 @@ page.open(system.args[1], function(status) {
 });`
 )
 
-func mgsSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+func mgsSearch(query string, metach chan MovieMeta) {
 	glog.Info("[MGS] Query: ", query)
 	keywords := mgsGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
-		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
-			defer func() { workerPool <- 1 }()
 			mgsSearchKeyword(keyword, wg, metach)
 		}(keyword.(string))
 	}
-	return wg
+	wg.Wait()
 }
 
 func mgsGuess(query string) mapset.Set {

@@ -1,8 +1,6 @@
 package opendmm
 
 import (
-	"sync"
-
 	"github.com/deckarep/golang-set"
 )
 
@@ -28,23 +26,19 @@ type MovieMeta struct {
 	Title          string
 }
 
-var workerPoolSize = 1000
-var workerPool = make(chan int, workerPoolSize)
+type searchFunc func(string, chan MovieMeta)
 
-func init() {
-	for i := 1; i <= workerPoolSize; i++ {
-		workerPool <- 1
-	}
+type searchRequest struct {
+	query string
+	out   chan MovieMeta
 }
 
-// SearchFunc is the interface of each engine's search function
-type SearchFunc func(string, chan MovieMeta) *sync.WaitGroup
+var reqCh chan searchRequest
 
-// Search for movies based on query and return a channel of MovieMeta
-func Search(query string) chan MovieMeta {
-	metach := make(chan MovieMeta)
-	var wgs [](*sync.WaitGroup)
-	for _, handler := range []SearchFunc{
+func init() {
+	reqCh = make(chan searchRequest, 100)
+	var minionChs [](chan searchRequest)
+	for _, minion := range []searchFunc{
 		aveSearch,
 		caribSearch,
 		caribprSearch,
@@ -58,20 +52,30 @@ func Search(query string) chan MovieMeta {
 		scuteSearch,
 		tkhSearch,
 	} {
-		wgs = append(wgs, handler(query, metach))
+		minionCh := make(chan searchRequest, 100)
+		minionChs = append(minionChs, minionCh)
+		go func(minion searchFunc) {
+			for req := range minionCh {
+				minion(req.query, req.out)
+			}
+		}(minion)
 	}
-
 	go func() {
-		for _, wg := range wgs {
-			wg.Wait()
+		for req := range reqCh {
+			for _, minionCh := range minionChs {
+				minionCh <- req
+			}
 		}
-		close(metach)
 	}()
-	return postprocess(metach)
 }
 
-// GuessFunc is the interface of each engine's guess function
-type GuessFunc func(string) mapset.Set
+// Search for movies based on query and return a channel of MovieMeta
+func Search(query string) chan MovieMeta {
+	out := make(chan MovieMeta, 100)
+	req := searchRequest{query, out}
+	reqCh <- req
+	return postprocess(out)
+}
 
 // Guess possible movie codes from query string
 func Guess(query string) mapset.Set {

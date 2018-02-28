@@ -13,20 +13,18 @@ import (
 	"github.com/golang/glog"
 )
 
-func caribSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+func caribSearch(query string, metach chan MovieMeta) {
 	glog.Info("[CARIB] Query: ", query)
 	wg := new(sync.WaitGroup)
 	keywords := caribGuess(query)
 	for keyword := range keywords.Iter() {
-		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
-			defer func() { workerPool <- 1 }()
 			caribSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	return wg
+	wg.Wait()
 }
 
 func caribGuess(query string) mapset.Set {

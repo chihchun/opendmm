@@ -14,20 +14,18 @@ import (
 	"github.com/golang/glog"
 )
 
-func dmmSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+func dmmSearch(query string, metach chan MovieMeta) {
 	glog.Info("[DMM] Query: ", query)
 	keywords := dmmGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
-		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
-			defer func() { workerPool <- 1 }()
 			dmmSearchKeyword(keyword, wg, metach)
 		}(keyword.(string))
 	}
-	return wg
+	wg.Wait()
 }
 
 func dmmGuess(query string) mapset.Set {

@@ -12,20 +12,18 @@ import (
 	"github.com/junzh0u/httpx"
 )
 
-func opdSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+func opdSearch(query string, metach chan MovieMeta) {
 	glog.Info("[OPD] Query: ", query)
 	wg := new(sync.WaitGroup)
 	keywords := opdGuess(query)
 	for keyword := range keywords.Iter() {
-		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
-			defer func() { workerPool <- 1 }()
 			opdSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	return wg
+	wg.Wait()
 }
 
 func opdGuess(query string) mapset.Set {

@@ -1,22 +1,29 @@
 package opendmm
 
 import (
+	"sync"
 	"testing"
 )
 
-func TestOpendmmSearch(t *testing.T) {
+func TestSearch(t *testing.T) {
 	queries := []string{
 		"SDDE-201",
 	}
+	wg := new(sync.WaitGroup)
 	for _, query := range queries {
-		metach := Search(query)
-		meta, ok := <-metach
-		if !ok {
-			t.Errorf("%s not found", query)
-		} else {
-			t.Logf("%s -> %+v", query, meta)
-		}
+		wg.Add(1)
+		go func(query string) {
+			defer wg.Done()
+			metach := Search(query)
+			meta, ok := <-metach
+			if !ok {
+				t.Errorf("%s not found", query)
+			} else {
+				t.Logf("%s -> %+v", query, meta)
+			}
+		}(query)
 	}
+	wg.Wait()
 }
 
 func TestOpendmmGuess(t *testing.T) {

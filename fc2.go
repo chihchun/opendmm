@@ -11,21 +11,19 @@ import (
 	"github.com/golang/glog"
 )
 
-func fc2Search(query string, metach chan MovieMeta) *sync.WaitGroup {
+func fc2Search(query string, metach chan MovieMeta) {
 	glog.Info("[FC2] Query: ", query)
 
 	wg := new(sync.WaitGroup)
 	keywords := fc2Guess(query)
 	for keyword := range keywords.Iter() {
-		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
-			defer func() { workerPool <- 1 }()
 			fc2SearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	return wg
+	wg.Wait()
 }
 
 func fc2Guess(query string) mapset.Set {

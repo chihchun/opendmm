@@ -13,20 +13,18 @@ import (
 	"github.com/golang/glog"
 )
 
-func heyzoSearch(query string, metach chan MovieMeta) *sync.WaitGroup {
+func heyzoSearch(query string, metach chan MovieMeta) {
 	glog.Info("[HEYZO] Query: ", query)
 	keywords := heyzoGuess(query)
 	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
-		<-workerPool
 		wg.Add(1)
 		go func(keyword string) {
 			defer wg.Done()
-			defer func() { workerPool <- 1 }()
 			heyzoSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	return wg
+	wg.Wait()
 }
 
 func heyzoGuess(query string) mapset.Set {
