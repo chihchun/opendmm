@@ -74,7 +74,7 @@ func init() {
 	} {
 		pipe := make(chan searchRequest, 100)
 		pipes = append(pipes, pipe)
-		for i := 0; i < 10; i++ {
+		for i := 0; i < 5; i++ {
 			go func(minion searchFunc) {
 				for req := range pipe {
 					minion(req.query, req.out)

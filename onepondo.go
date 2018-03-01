@@ -27,9 +27,14 @@ func opdSearch(query string, metach chan MovieMeta) {
 }
 
 func opdGuess(query string) mapset.Set {
+	keywords := mapset.NewSet()
+	matched, _ := regexp.MatchString("(?i)(1|one)pon(do)?", query)
+	if !matched {
+		return keywords
+	}
+
 	re := regexp.MustCompile("(\\d{6})[-_](\\d{3})")
 	matches := re.FindAllStringSubmatch(query, -1)
-	keywords := mapset.NewSet()
 	for _, match := range matches {
 		keywords.Add(fmt.Sprintf("%s_%s", match[1], match[2]))
 	}

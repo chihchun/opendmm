@@ -29,9 +29,14 @@ func scuteSearch(query string, metach chan MovieMeta) {
 }
 
 func scuteGuess(query string) mapset.Set {
+	keywords := mapset.NewSet()
+	matched, _ := regexp.MatchString("(?i)s.?cute", query)
+	if !matched {
+		return keywords
+	}
+
 	re := regexp.MustCompile("(?i)(\\d{3})[_ ]([a-z]+)[_ ]#?(\\d{1,2})")
 	matches := re.FindAllStringSubmatch(query, -1)
-	keywords := mapset.NewSet()
 	for _, match := range matches {
 		keywords.Add(fmt.Sprintf("%s_%s_%02s", strings.ToUpper(match[1]), strings.ToLower(match[2]), match[3]))
 	}

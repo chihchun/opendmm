@@ -54,7 +54,7 @@ func main() {
 	port := os.Getenv("PORT")
 
 	flag.Set("stderrthreshold", "FATAL")
-	timeout := flag.Duration("timeout", 30*time.Second, "Timeout of Search API")
+	timeout := flag.Duration("timeout", 60*time.Second, "Timeout of Search API")
 	flag.Parse()
 
 	db, err := leveldb.OpenFile("opendmmd.leveldb", nil)
