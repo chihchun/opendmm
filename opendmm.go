@@ -36,11 +36,13 @@ type searchRequest struct {
 	wg    *sync.WaitGroup
 }
 
-var reqCh chan searchRequest
+var reqs chan searchRequest
 
 func init() {
-	reqCh = make(chan searchRequest, 100)
-	var minionChs [](chan searchRequest)
+	reqs = make(chan searchRequest, 10)
+	var pipes [](chan searchRequest)
+
+	// Fast minions
 	for _, minion := range []searchFunc{
 		aveSearch,
 		caribSearch,
@@ -49,28 +51,45 @@ func init() {
 		fc2Search,
 		heyzoSearch,
 		javSearch,
-		mgsSearch,
 		niceageSearch,
-		opdSearch,
-		scuteSearch,
 		tkhSearch,
 	} {
-		minionCh := make(chan searchRequest, 100)
-		minionChs = append(minionChs, minionCh)
-		for i := 0; i < 3; i++ {
+		pipe := make(chan searchRequest, 10)
+		pipes = append(pipes, pipe)
+		for i := 0; i < 2; i++ {
 			go func(minion searchFunc) {
-				for req := range minionCh {
+				for req := range pipe {
 					minion(req.query, req.out)
 					req.wg.Done()
 				}
 			}(minion)
 		}
 	}
+
+	// slow minions
+	for _, minion := range []searchFunc{
+		mgsSearch,
+		opdSearch,
+		scuteSearch,
+	} {
+		pipe := make(chan searchRequest, 100)
+		pipes = append(pipes, pipe)
+		for i := 0; i < 10; i++ {
+			go func(minion searchFunc) {
+				for req := range pipe {
+					minion(req.query, req.out)
+					req.wg.Done()
+				}
+			}(minion)
+		}
+	}
+
+	// dispatcher
 	go func() {
-		for req := range reqCh {
-			for _, minionCh := range minionChs {
+		for req := range reqs {
+			for _, pipe := range pipes {
 				req.wg.Add(1)
-				minionCh <- req
+				pipe <- req
 			}
 			go func(req searchRequest) {
 				req.wg.Wait()
@@ -84,7 +103,7 @@ func init() {
 func Search(query string) chan MovieMeta {
 	out := make(chan MovieMeta, 100)
 	req := searchRequest{query, out, new(sync.WaitGroup)}
-	reqCh <- req
+	reqs <- req
 	return postprocess(out)
 }
 
