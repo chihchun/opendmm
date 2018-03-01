@@ -12,9 +12,7 @@ import (
 	"github.com/junzh0u/httpx"
 )
 
-func opdSearch(query string, metach chan MovieMeta) {
-	glog.Info("Query: ", query)
-	wg := new(sync.WaitGroup)
+func opdSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := opdGuess(query)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
@@ -23,7 +21,6 @@ func opdSearch(query string, metach chan MovieMeta) {
 			opdSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	wg.Wait()
 }
 
 func opdGuess(query string) mapset.Set {
@@ -59,10 +56,10 @@ func opdSearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func opdParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("Product page: ", urlstr)
+	glog.V(2).Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, httpx.GetFullPage)
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 

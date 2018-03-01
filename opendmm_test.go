@@ -8,6 +8,7 @@ import (
 func TestSearch(t *testing.T) {
 	queries := []string{
 		"SDDE-201",
+		"200GANA-894",
 	}
 	wg := new(sync.WaitGroup)
 	for _, query := range queries {

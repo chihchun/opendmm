@@ -37,10 +37,8 @@ page.open(system.args[1], function(status) {
 });`
 )
 
-func mgsSearch(query string, metach chan MovieMeta) {
-	glog.Info("Query: ", query)
+func mgsSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := mgsGuess(query)
-	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
 		go func(keyword string) {
@@ -48,7 +46,6 @@ func mgsSearch(query string, metach chan MovieMeta) {
 			mgsSearchKeyword(keyword, wg, metach)
 		}(keyword.(string))
 	}
-	wg.Wait()
 }
 
 func mgsGuess(query string) mapset.Set {
@@ -87,10 +84,10 @@ func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 }
 
 func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("Search page: ", urlstr)
+	glog.V(2).Info("Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -106,7 +103,7 @@ func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metac
 				}
 				urlhref, err := urlbase.Parse(href)
 				if err != nil {
-					glog.Warning(err)
+					glog.V(2).Info(err)
 					return
 				}
 				wg.Add(1)
@@ -119,10 +116,10 @@ func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metac
 }
 
 func mgsParseProductPage(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("Product page: ", urlstr)
+	glog.V(2).Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -152,7 +149,6 @@ func mgsParseProductPage(urlstr string, keyword string, metach chan MovieMeta) {
 				for _, match := range matches {
 					key := strings.TrimSpace(match[1])
 					value := strings.TrimSpace(match[2])
-					glog.Infof("Key: %s; Value: %s", key, value)
 					switch key {
 					case "収録時間":
 						meta.MovieLength = value

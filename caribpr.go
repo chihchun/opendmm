@@ -13,9 +13,7 @@ import (
 	"github.com/golang/glog"
 )
 
-func caribprSearch(query string, metach chan MovieMeta) {
-	glog.Info("Query: ", query)
-	wg := new(sync.WaitGroup)
+func caribprSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := caribprGuess(query)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
@@ -24,7 +22,6 @@ func caribprSearch(query string, metach chan MovieMeta) {
 			caribprSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	wg.Wait()
 }
 
 func caribprGuess(query string) mapset.Set {
@@ -55,10 +52,10 @@ func caribprSearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func caribprParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("Product page: ", urlstr)
+	glog.V(2).Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 

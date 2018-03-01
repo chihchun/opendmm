@@ -13,10 +13,7 @@ import (
 	"github.com/junzh0u/httpx"
 )
 
-func scuteSearch(query string, metach chan MovieMeta) {
-	glog.Info("[S-Cute] Query: ", query)
-
-	wg := new(sync.WaitGroup)
+func scuteSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := scuteGuess(query)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
@@ -25,16 +22,10 @@ func scuteSearch(query string, metach chan MovieMeta) {
 			scuteSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	wg.Wait()
 }
 
 func scuteGuess(query string) mapset.Set {
 	keywords := mapset.NewSet()
-	matched, _ := regexp.MatchString("(?i)s.?cute", query)
-	if !matched {
-		return keywords
-	}
-
 	re := regexp.MustCompile("(?i)(\\d{3})[_ ]([a-z]+)[_ ]#?(\\d{1,2})")
 	matches := re.FindAllStringSubmatch(query, -1)
 	for _, match := range matches {
@@ -52,7 +43,7 @@ func scuteGuessFull(query string) mapset.Set {
 }
 
 func scuteSearchKeyword(keyword string, metach chan MovieMeta) {
-	glog.Info("[S-Cute] Keyword: ", keyword)
+	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"http://www.s-cute.com/contents/%s/",
 		url.QueryEscape(keyword),
@@ -61,10 +52,10 @@ func scuteSearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func scuteParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("[S-Cute] Product page: ", urlstr)
+	glog.V(2).Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
 	if err != nil {
-		glog.Warningf("[S-Cute] Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 

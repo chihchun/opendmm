@@ -13,10 +13,8 @@ import (
 	"github.com/golang/glog"
 )
 
-func heyzoSearch(query string, metach chan MovieMeta) {
-	glog.Info("Query: ", query)
+func heyzoSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := heyzoGuess(query)
-	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
 		go func(keyword string) {
@@ -24,7 +22,6 @@ func heyzoSearch(query string, metach chan MovieMeta) {
 			heyzoSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	wg.Wait()
 }
 
 func heyzoGuess(query string) mapset.Set {
@@ -60,10 +57,10 @@ func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func heyzoParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("Product page: ", urlstr)
+	glog.V(2).Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 

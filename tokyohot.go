@@ -13,10 +13,7 @@ import (
 	"github.com/golang/glog"
 )
 
-func tkhSearch(query string, metach chan MovieMeta) {
-	glog.Info("Query: ", query)
-
-	wg := new(sync.WaitGroup)
+func tkhSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := tkhGuess(query)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
@@ -25,7 +22,6 @@ func tkhSearch(query string, metach chan MovieMeta) {
 			tkhSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	wg.Wait()
 }
 
 func tkhGuess(query string) mapset.Set {
@@ -52,10 +48,10 @@ func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
 		"http://www.tokyo-hot.com/product/?q=%s",
 		url.QueryEscape(keyword),
 	)
-	glog.Info("Search page: ", urlstr)
+	glog.V(2).Info("Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -74,10 +70,10 @@ func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func tkhParse(urlstr string, metach chan MovieMeta) {
-	glog.Info("Product page: ", urlstr)
+	glog.V(2).Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 

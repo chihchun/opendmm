@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/deckarep/golang-set"
+	"github.com/golang/glog"
 )
 
 // MovieMeta contains meta data of movie
@@ -28,82 +29,53 @@ type MovieMeta struct {
 	Title          string
 }
 
-type searchFunc func(string, chan MovieMeta)
-
-type searchRequest struct {
-	query string
-	out   chan MovieMeta
-	wg    *sync.WaitGroup
-}
-
-var reqs chan searchRequest
-
-func init() {
-	reqs = make(chan searchRequest, 10)
-	var pipes [](chan searchRequest)
-
-	// Fast minions
-	for _, minion := range []searchFunc{
-		aveSearch,
-		caribSearch,
-		caribprSearch,
-		dmmSearch,
-		fc2Search,
-		heyzoSearch,
-		javSearch,
-		niceageSearch,
-		tkhSearch,
-	} {
-		pipe := make(chan searchRequest, 10)
-		pipes = append(pipes, pipe)
-		for i := 0; i < 2; i++ {
-			go func(minion searchFunc) {
-				for req := range pipe {
-					minion(req.query, req.out)
-					req.wg.Done()
-				}
-			}(minion)
-		}
-	}
-
-	// slow minions
-	for _, minion := range []searchFunc{
-		mgsSearch,
-		opdSearch,
-		scuteSearch,
-	} {
-		pipe := make(chan searchRequest, 100)
-		pipes = append(pipes, pipe)
-		for i := 0; i < 5; i++ {
-			go func(minion searchFunc) {
-				for req := range pipe {
-					minion(req.query, req.out)
-					req.wg.Done()
-				}
-			}(minion)
-		}
-	}
-
-	// dispatcher
-	go func() {
-		for req := range reqs {
-			for _, pipe := range pipes {
-				req.wg.Add(1)
-				pipe <- req
-			}
-			go func(req searchRequest) {
-				req.wg.Wait()
-				close(req.out)
-			}(req)
-		}
-	}()
-}
+type searchFunc func(string, *sync.WaitGroup, chan MovieMeta)
 
 // Search for movies based on query and return a channel of MovieMeta
 func Search(query string) chan MovieMeta {
+	out := make(chan MovieMeta)
+	go func(out chan MovieMeta) {
+		defer close(out)
+		fastOut := searchWithEngines(query, []searchFunc{
+			aveSearch,
+			caribSearch,
+			caribprSearch,
+			dmmSearch,
+			fc2Search,
+			heyzoSearch,
+			javSearch,
+			niceageSearch,
+			tkhSearch,
+		})
+		meta, ok := <-fastOut
+		if ok {
+			out <- meta
+		} else {
+			glog.Info("Trying slow engines")
+			slowOut := searchWithEngines(query, []searchFunc{
+				mgsSearch,
+				opdSearch,
+				scuteSearch,
+			})
+			meta, ok := <-slowOut
+			if ok {
+				out <- meta
+			}
+		}
+	}(out)
+	return out
+}
+
+func searchWithEngines(query string, engines []searchFunc) chan MovieMeta {
+	wg := new(sync.WaitGroup)
 	out := make(chan MovieMeta, 100)
-	req := searchRequest{query, out, new(sync.WaitGroup)}
-	reqs <- req
+	for _, engine := range engines {
+		engine(query, wg, out)
+	}
+	go func(wg *sync.WaitGroup, out chan MovieMeta) {
+		wg.Wait()
+		close(out)
+	}(wg, out)
 	return postprocess(out)
 }
 

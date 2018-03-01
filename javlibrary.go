@@ -10,10 +10,8 @@ import (
 	"github.com/golang/glog"
 )
 
-func javSearch(query string, metach chan MovieMeta) {
-	glog.Info("Query: ", query)
+func javSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := dmmGuess(query)
-	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
 		go func(keyword string) {
@@ -21,7 +19,6 @@ func javSearch(query string, metach chan MovieMeta) {
 			javSearchKeyword(keyword, wg, metach)
 		}(keyword.(string))
 	}
-	wg.Wait()
 }
 
 func javSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
@@ -34,10 +31,10 @@ func javSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 }
 
 func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	glog.Info("Product/Search page: ", urlstr)
+	glog.V(2).Info("Product/Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -66,14 +63,14 @@ func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan Mov
 			})
 
 		if !dmmIsCodeEqual(keyword, meta.Code) {
-			glog.Warningf("Code mismatch: Expected %s, got %s", keyword, meta.Code)
+			glog.V(2).Infof("Code mismatch: Expected %s, got %s", keyword, meta.Code)
 		} else {
 			metach <- meta
 		}
 	} else {
 		urlbase, err := url.Parse(urlstr)
 		if err != nil {
-			glog.Error(err)
+			glog.V(2).Info(err)
 			return
 		}
 		doc.Find("div.videothumblist > div.videos > div.video > a").Each(
@@ -84,7 +81,7 @@ func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan Mov
 				}
 				urlhref, err := urlbase.Parse(href)
 				if err != nil {
-					glog.Error(err)
+					glog.V(2).Info(err)
 					return
 				}
 				wg.Add(1)

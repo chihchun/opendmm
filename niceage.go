@@ -12,10 +12,8 @@ import (
 	"github.com/golang/glog"
 )
 
-func niceageSearch(query string, metach chan MovieMeta) {
-	glog.Info("Query: ", query)
+func niceageSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := dmmGuess(query)
-	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
 		go func(keyword string) {
@@ -23,7 +21,6 @@ func niceageSearch(query string, metach chan MovieMeta) {
 			niceageSearchKeyword(keyword, metach)
 		}(keyword.(string))
 	}
-	wg.Wait()
 }
 
 func niceageSearchKeyword(keyword string, metach chan MovieMeta) {
@@ -33,27 +30,27 @@ func niceageSearchKeyword(keyword string, metach chan MovieMeta) {
 }
 
 func niceageParse(urlstr string, metach chan MovieMeta) {
-	glog.Info("Product page: ", urlstr)
+	glog.V(2).Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
 	var meta MovieMeta
 	urlbase, err := url.Parse(urlstr)
 	if err != nil {
-		glog.Error(err)
+		glog.V(2).Info(err)
 		return
 	}
 	imageHref, ok := doc.Find("#detail > div > a > img").Attr("src")
 	if !ok {
-		glog.Errorf("no cover image")
+		glog.V(2).Info("no cover image")
 		return
 	}
 	urlimage, err := urlbase.Parse(imageHref)
 	if err != nil {
-		glog.Error(err)
+		glog.V(2).Info(err)
 		return
 	}
 	meta.CoverImage = urlimage.String()
@@ -62,8 +59,6 @@ func niceageParse(urlstr string, metach chan MovieMeta) {
 	infoTable.Find("th").Each(
 		func(i int, th *goquery.Selection) {
 			td := th.Next()
-			glog.Info(th)
-			glog.Info(td)
 			if strings.Contains(th.Text(), "タイトル") {
 				meta.Title = td.Text()
 			} else if strings.Contains(th.Text(), "出演") {

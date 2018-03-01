@@ -13,10 +13,9 @@ type ProcessStage func(chan MovieMeta) chan MovieMeta
 
 func deduplicate(in chan MovieMeta) chan MovieMeta {
 	out := make(chan MovieMeta)
-	go func() {
+	go func(out chan MovieMeta) {
 		defer close(out)
 		for meta := range in {
-			glog.Infof("Deduplicate: %s", meta.Code)
 			segments := regexp.MustCompile("\\s").Split(meta.Title, -1)
 			for i, segment := range segments {
 				if segment == meta.Code {
@@ -33,17 +32,15 @@ func deduplicate(in chan MovieMeta) chan MovieMeta {
 			meta.Title = strings.Join(segments, " ")
 			out <- meta
 		}
-	}()
+	}(out)
 	return out
 }
 
 func trimSpaces(in chan MovieMeta) chan MovieMeta {
 	out := make(chan MovieMeta)
-	go func() {
+	go func(out chan MovieMeta) {
 		defer close(out)
 		for meta := range in {
-			glog.Infof("Trim spaces: %s", meta.Code)
-
 			value := reflect.ValueOf(&meta).Elem()
 			for fi := 0; fi < value.NumField(); fi++ {
 				field := value.Field(fi)
@@ -65,29 +62,28 @@ func trimSpaces(in chan MovieMeta) chan MovieMeta {
 			}
 			out <- meta
 		}
-	}()
+	}(out)
 	return out
 }
 
 func validateFields(in chan MovieMeta) chan MovieMeta {
 	out := make(chan MovieMeta)
-	go func() {
+	go func(out chan MovieMeta) {
 		defer close(out)
 		for meta := range in {
-			glog.Infof("Validate fields: %s", meta.Code)
 			if meta.Code == "" || meta.Title == "" || meta.CoverImage == "" {
-				glog.Warningf("Validate failed: %+v", meta)
+				glog.V(2).Infof("Validate failed: %+v", meta)
 			} else {
 				out <- meta
 			}
 		}
-	}()
+	}(out)
 	return out
 }
 
 func normalizeURLFields(in chan MovieMeta) chan MovieMeta {
 	out := make(chan MovieMeta)
-	go func() {
+	go func(out chan MovieMeta) {
 		defer close(out)
 		for meta := range in {
 			meta.CoverImage = normalizeURL(meta.CoverImage)
@@ -96,7 +92,7 @@ func normalizeURLFields(in chan MovieMeta) chan MovieMeta {
 			meta.ThumbnailImage = normalizeURL(meta.ThumbnailImage)
 			out <- meta
 		}
-	}()
+	}(out)
 	return out
 }
 

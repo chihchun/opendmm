@@ -14,10 +14,8 @@ import (
 	"github.com/golang/glog"
 )
 
-func dmmSearch(query string, metach chan MovieMeta) {
-	glog.Info("Query: ", query)
+func dmmSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := dmmGuess(query)
-	wg := new(sync.WaitGroup)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
 		go func(keyword string) {
@@ -25,7 +23,6 @@ func dmmSearch(query string, metach chan MovieMeta) {
 			dmmSearchKeyword(keyword, wg, metach)
 		}(keyword.(string))
 	}
-	wg.Wait()
 }
 
 func dmmGuess(query string) mapset.Set {
@@ -46,8 +43,6 @@ func dmmIsCodeEqual(lcode, rcode string) bool {
 	re := regexp.MustCompile("(?i)([a-z]+)-(\\d+)")
 	lmeta := re.FindStringSubmatch(lcode)
 	rmeta := re.FindStringSubmatch(rcode)
-	glog.Info(lmeta)
-	glog.Info(rmeta)
 	if lmeta == nil || rmeta == nil {
 		return false
 	}
@@ -73,10 +68,10 @@ func dmmSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 		"http://www.dmm.co.jp/search/=/searchstr=%s",
 		url.QueryEscape(keyword),
 	)
-	glog.Info("Search page: ", urlstr)
+	glog.V(2).Info("Search page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -94,10 +89,10 @@ func dmmSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 }
 
 func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
-	glog.Info("Product page: ", urlstr)
+	glog.V(2).Info("Product page: ", urlstr)
 	doc, err := newDocumentInUTF8(urlstr, http.Get)
 	if err != nil {
-		glog.Warningf("Error parsing %s: %v", urlstr, err)
+		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
 	}
 
@@ -146,7 +141,7 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 		})
 
 	if !dmmIsCodeEqual(keyword, meta.Code) {
-		glog.Warningf("Code mismatch: Expected %s, got %s", keyword, meta.Code)
+		glog.V(2).Infof("Code mismatch: Expected %s, got %s", keyword, meta.Code)
 	} else {
 		metach <- meta
 	}
@@ -154,9 +149,9 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 
 func dmmParseCode(code string) string {
 	re := regexp.MustCompile("(?i)([a-z]+)(\\d+)")
-	meta := re.FindStringSubmatch(code)
-	if meta != nil {
-		return fmt.Sprintf("%s-%s", strings.ToUpper(meta[1]), meta[2])
+	m := re.FindStringSubmatch(code)
+	if m != nil {
+		return fmt.Sprintf("%s-%s", strings.ToUpper(m[1]), m[2])
 	}
 	return code
 }
