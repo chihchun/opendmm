@@ -71,7 +71,10 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
 	go func(out chan MovieMeta) {
 		defer close(out)
 		for meta := range in {
-			if meta.Code == "" || meta.Title == "" || meta.CoverImage == "" {
+			if meta.Code == "" ||
+				meta.Title == "" ||
+				meta.CoverImage == "" ||
+				strings.HasPrefix(meta.CoverImage, "javascript") {
 				glog.V(2).Infof("Validate failed: %+v", meta)
 			} else {
 				out <- meta
