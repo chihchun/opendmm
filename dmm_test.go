@@ -17,6 +17,7 @@ func TestDmm(t *testing.T) {
 		"HODV021158",
 		"RHE-463",
 		"parathd-2000",
+		"140c02202",
 	}
 	assertSearchable(t, queries, dmmSearch)
 
