@@ -19,7 +19,11 @@ func searchHandler(timeout time.Duration, db *leveldb.DB) http.HandlerFunc {
 		metajson, err := db.Get([]byte(q), nil)
 		if err == nil {
 			glog.Infof("Hit cache: %s", q)
-			fmt.Fprintf(w, string(metajson))
+			if len(metajson) == 0 {
+				w.WriteHeader(http.StatusNotFound)
+			} else {
+				fmt.Fprintf(w, string(metajson))
+			}
 			return
 		}
 
@@ -31,6 +35,7 @@ func searchHandler(timeout time.Duration, db *leveldb.DB) http.HandlerFunc {
 				db.Put([]byte(q), metajson, nil)
 				fmt.Fprintf(w, string(metajson))
 			} else {
+				db.Put([]byte(q), []byte{}, nil)
 				w.WriteHeader(http.StatusNotFound)
 			}
 		case <-time.After(timeout):
