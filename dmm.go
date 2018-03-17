@@ -111,7 +111,7 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 			k := td.Text()
 			v := td.Next()
 			if strings.Contains(k, "開始日") || strings.Contains(k, "発売日") {
-				date := v.Text()
+				date := strings.TrimSpace(v.Text())
 				matched, _ := regexp.MatchString("^-+$", date)
 				if !matched {
 					meta.ReleaseDate = date
