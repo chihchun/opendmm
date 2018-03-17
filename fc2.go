@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 	"sync"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 )
@@ -69,6 +71,18 @@ func fc2Parse(urlstr string, keyword string, metach chan MovieMeta) {
 	meta.Title = doc.Find("section.detail > h2").Text()
 	meta.CoverImage, _ = doc.Find("div.main_thum_img > a").Attr("href")
 	meta.Description = doc.Find("section.explain > p").Text()
+
+	doc.Find(".main_info_block dl dt").Each(
+		func(i int, dt *goquery.Selection) {
+			dd := dt.Next()
+			glog.Info(dt.Text())
+			glog.Info(dd.Text())
+			if strings.Contains(dt.Text(), "販売日") {
+				meta.ReleaseDate = dd.Text()
+			} else if strings.Contains(dt.Text(), "再生時間") {
+				meta.MovieLength = dd.Text()
+			}
+		})
 
 	metach <- meta
 }
