@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
@@ -82,22 +81,21 @@ func heyzoParse(urlstr string, keyword string, metach chan MovieMeta) {
 	}
 
 	meta.Title = doc.Find("#movie > h1").Text()
-	meta.ReleaseDate = doc.Find("#movie > div.info-bg.info-bgWide > div > span.release-day + *").Text()
-	meta.Actresses = doc.Find("#movie > div.info-bg.info-bgWide > div > span.actor + *").Find("a").Map(
+	meta.ReleaseDate = doc.Find("tr.table-release-day > td:nth-child(2)").Text()
+	meta.Actresses = doc.Find("tr.table-actor > td:nth-child(2) a").Map(
 		func(i int, a *goquery.Selection) string {
 			return a.Text()
 		})
-	meta.Label = strings.Replace(
-		doc.Find("#movie > div.info-bg.info-bgWide > div > span.label + *").Text(), "-", "", -1)
-	meta.ActressTypes = doc.Find("#movie > div.info-bg.info-bgWide > div > div.actor-type > span").Map(
-		func(i int, span *goquery.Selection) string {
-			return span.Text()
+	meta.Series = doc.Find("tr.table-series > td:nth-child(2)").Text()
+	meta.ActressTypes = doc.Find("tr.table-actor-type > td:nth-child(2) a").Map(
+		func(i int, a *goquery.Selection) string {
+			return a.Text()
 		})
-	meta.Tags = doc.Find("#movie > div.info-bg.info-bgWide > div > div.tag_cloud > ul > li").Map(
+	meta.Tags = doc.Find("ul.tag-keyword-list li").Map(
 		func(i int, li *goquery.Selection) string {
 			return li.Text()
 		})
-	descNode := doc.Find("#movie > div.info-bg.info-bgWide > div > p > *").Nodes
+	descNode := doc.Find("tr.table-memo p.memo").Nodes
 	if len(descNode) > 0 {
 		meta.Description = descNode[0].Data
 	}
