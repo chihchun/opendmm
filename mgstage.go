@@ -127,6 +127,7 @@ func mgsParseProductPage(urlstr string, keyword string, metach chan MovieMeta) {
 	meta.Page = urlstr
 	meta.Title = doc.Find("#center_column h1.tag").Text()
 	meta.CoverImage, _ = doc.Find("#center_column a#EnlargeImage").Attr("href")
+	meta.ReleaseDate = doc.Find("span.date").Text()
 
 	doc.Find("ul.detail_txt > li").Each(
 		func(i int, li *goquery.Selection) {
