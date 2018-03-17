@@ -104,7 +104,7 @@ func caribParse(urlstr string, keyword string, metach chan MovieMeta) {
 					func(i int, a *goquery.Selection) string {
 						return a.Text()
 					})
-			} else if strings.Contains(dt.Text(), "販売日") {
+			} else if strings.Contains(dt.Text(), "販売日") || strings.Contains(dt.Text(), "配信日") {
 				meta.ReleaseDate = dl.Find("dd").Text()
 			} else if strings.Contains(dt.Text(), "再生時間") {
 				meta.MovieLength = dl.Find("dd").Text()
