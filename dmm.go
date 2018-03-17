@@ -110,7 +110,7 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 			td := tr.Find("td").First()
 			k := td.Text()
 			v := td.Next()
-			if strings.Contains(k, "開始日") {
+			if strings.Contains(k, "開始日") || strings.Contains(k, "発売日") {
 				meta.ReleaseDate = v.Text()
 			} else if strings.Contains(k, "収録時間") {
 				meta.MovieLength = v.Text()
