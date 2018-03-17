@@ -25,7 +25,7 @@ func caribSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 }
 
 func caribGuess(query string) mapset.Set {
-	re := regexp.MustCompile("(\\d{6})[-_](\\d{3})")
+	re := regexp.MustCompile("(\\d{6})-(\\d{3})")
 	matches := re.FindAllStringSubmatch(query, -1)
 	keywords := mapset.NewSet()
 	for _, match := range matches {
