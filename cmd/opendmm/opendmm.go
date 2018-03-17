@@ -27,7 +27,7 @@ func search(query string, timeout time.Duration) {
 
 func main() {
 	flag.Set("stderrthreshold", "FATAL")
-	timeout := flag.Duration("timeout", 30*time.Second, "timeout")
+	timeout := flag.Duration("timeout", 60*time.Second, "timeout")
 	flag.Parse()
 
 	switch flag.Arg(0) {
