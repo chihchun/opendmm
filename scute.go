@@ -81,5 +81,8 @@ func scuteParse(urlstr string, keyword string, metach chan MovieMeta) {
 			meta.Actresses = append(meta.Actresses, actress)
 		})
 
+	dateRe := regexp.MustCompile("\\d+/\\d+/\\d+")
+	meta.ReleaseDate = dateRe.FindString(doc.Find(".detail article").Text())
+
 	metach <- meta
 }
