@@ -1,0 +1,4 @@
+{
+    "go.testTimeout": "180s",
+    "go.testFlags": ["-logtostderr", "-v=2"]
+}

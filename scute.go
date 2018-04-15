@@ -63,26 +63,19 @@ func scuteParse(urlstr string, keyword string, metach chan MovieMeta) {
 	meta.Code = fmt.Sprintf("S-Cute %s", keyword)
 	meta.Page = urlstr
 
-	meta.Title = doc.Find("span.title").Text()
-	meta.Description = doc.Find("div.detail > article > p:nth-child(4)").Text()
+	meta.Title = doc.Find("div.blog-single > h3").Text()
+	meta.Description = doc.Find("div.blog-single > p").Text()
 
-	bgStyle, ok := doc.Find("#js-sample > div.vjs-poster").Attr("style")
-	if ok {
-		re := regexp.MustCompile("(?i)url\\((.+)\\)")
-		match := re.FindStringSubmatch(bgStyle)
-		meta.CoverImage = match[1]
-	} else {
-		meta.CoverImage, _ = doc.Find("div.nosample > a > img").Attr("src")
-	}
+	meta.CoverImage, _ = doc.Find("div.content-cover > img:nth-child(1)").Attr("src")
 
-	doc.Find("div.cast > h5").Each(
+	doc.Find("div.about-author > a > h5").Each(
 		func(i int, h *goquery.Selection) {
 			actress := strings.SplitN(h.Text(), " ", 2)[1]
 			meta.Actresses = append(meta.Actresses, actress)
 		})
 
 	dateRe := regexp.MustCompile("\\d+/\\d+/\\d+")
-	meta.ReleaseDate = dateRe.FindString(doc.Find(".detail article").Text())
+	meta.ReleaseDate = dateRe.FindString(doc.Find("div.blog-single span.date").Text())
 
 	metach <- meta
 }
