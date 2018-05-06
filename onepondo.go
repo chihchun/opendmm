@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
@@ -67,19 +68,37 @@ func opdParse(urlstr string, keyword string, metach chan MovieMeta) {
 	meta.Code = fmt.Sprintf("1pondo %s", keyword)
 	meta.Page = urlstr
 	meta.CoverImage = fmt.Sprintf("https://www.1pondo.tv/assets/sample/%s/str.jpg", keyword)
-	meta.Description = doc.Find(".box-comment div:nth-child(1)").Text()
-	doc.Find(".tag-area a").Each(
-		func(i int, a *goquery.Selection) {
-			meta.Tags = append(meta.Tags, a.Text())
+	meta.Title = doc.Find("div.movie-overview h1").Text()
+	meta.Description = doc.Find("div.movie-detail p").Text()
+	doc.Find("li.movie-detail__spec").Each(
+		func(i int, li *goquery.Selection) {
+			title := li.Find("span.spec-title").Text()
+			content := li.Find("span.spec-content")
+			if strings.Contains(title, "配信日") {
+				meta.ReleaseDate = content.Text()
+			} else if strings.Contains(title, "出演") {
+				content.Find("a").Each(
+					func(i int, a *goquery.Selection) {
+						meta.Actresses = append(meta.Actresses, a.Text())
+					})
+			} else if strings.Contains(title, "シリーズ") {
+				meta.Series = content.Text()
+			} else if strings.Contains(title, "再生時間") {
+				meta.MovieLength = content.Text()
+			} else if strings.Contains(title, "タグ") {
+				content.Find("a").Each(
+					func(i int, a *goquery.Selection) {
+						meta.Tags = append(meta.Tags, a.Text())
+					})
+			}
 		})
-	meta.Title = doc.Find("dl.movie-title dd").Text()
-	doc.Find("dl.actress-name dd a").Each(
-		func(i int, a *goquery.Selection) {
-			meta.Actresses = append(meta.Actresses, a.Text())
+	doc.Find("img.gallery-image").Each(
+		func(i int, img *goquery.Selection) {
+			src, ok := img.Attr("data-vue-img-src")
+			if ok {
+				meta.SampleImages = append(meta.SampleImages, src)
+			}
 		})
-	meta.ReleaseDate = doc.Find("dl.release-date dd").Text()
-	meta.MovieLength = doc.Find("dl.duration dd").Text()
-	meta.Series = doc.Find("dl.series dd").Text()
 
 	metach <- meta
 }
