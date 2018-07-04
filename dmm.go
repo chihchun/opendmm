@@ -102,7 +102,7 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 	meta.Title = doc.Find(".area-headline h1").Text()
 	meta.ThumbnailImage, _ = doc.Find("#sample-video img").Attr("src")
 	meta.CoverImage, ok = doc.Find("#sample-video a").Attr("href")
-	if !ok {
+	if !ok || strings.HasPrefix(meta.CoverImage, "javascript") {
 		meta.CoverImage = meta.ThumbnailImage
 	}
 	doc.Find("div.page-detail > table > tbody > tr > td > table > tbody > tr").Each(
