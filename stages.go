@@ -84,6 +84,21 @@ func validateFields(in chan MovieMeta) chan MovieMeta {
 	return out
 }
 
+func normalizeCode(in chan MovieMeta) chan MovieMeta {
+	out := make(chan MovieMeta)
+	re := regexp.MustCompile("^(\\w+-)0+(\\d{3,})$")
+	go func(out chan MovieMeta) {
+		defer close(out)
+		for meta := range in {
+			glog.V(2).Infof("Code before normalization: %+v", meta.Code)
+			meta.Code = re.ReplaceAllString(meta.Code, "$1$2")
+			glog.V(2).Infof("Code after normalization: %+v", meta.Code)
+			out <- meta
+		}
+	}(out)
+	return out
+}
+
 func normalizeURLFields(in chan MovieMeta) chan MovieMeta {
 	out := make(chan MovieMeta)
 	go func(out chan MovieMeta) {
@@ -100,5 +115,5 @@ func normalizeURLFields(in chan MovieMeta) chan MovieMeta {
 }
 
 func postprocess(in chan MovieMeta) chan MovieMeta {
-	return normalizeURLFields(validateFields(trimSpaces(deduplicate(in))))
+	return normalizeURLFields(normalizeCode(validateFields(trimSpaces(deduplicate(in)))))
 }
