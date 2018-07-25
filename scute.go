@@ -53,7 +53,7 @@ func scuteSearchKeyword(keyword string, metach chan MovieMeta) {
 
 func scuteParse(urlstr string, keyword string, metach chan MovieMeta) {
 	glog.V(2).Info("Product page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
+	doc, err := newDocumentInUTF8(urlstr, httpx.GetFullPage)
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return

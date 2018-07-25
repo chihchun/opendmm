@@ -43,7 +43,6 @@ func Search(query string) chan MovieMeta {
 			dmmSearch,
 			fc2Search,
 			heyzoSearch,
-			javSearch,
 			niceageSearch,
 			tkhSearch,
 		})
