@@ -4,8 +4,8 @@
 [[projects]]
   name = "github.com/PuerkitoBio/goquery"
   packages = ["."]
-  revision = "a86ea073017a6beddef78c8659e7224e8ca634b0"
-  version = "v1.4.0"
+  revision = "dc2ec5c7ca4d9aae063b79b9f581dd3ea6afd2b2"
+  version = "v1.4.1"
 
 [[projects]]
   name = "github.com/andybalholm/cascadia"
@@ -29,7 +29,7 @@
   branch = "master"
   name = "github.com/golang/snappy"
   packages = ["."]
-  revision = "553a641470496b2327abcac10b36396bd98e45c9"
+  revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
 
 [[projects]]
   branch = "master"
@@ -38,13 +38,13 @@
     "hmetrics",
     "hmetrics/onload"
   ]
-  revision = "e027b57be83570b92aeefcdad710e38695d5999b"
+  revision = "1de401e1ba0e5db3e5c15d2faeee777e0b685700"
 
 [[projects]]
   branch = "master"
   name = "github.com/junzh0u/httpx"
   packages = ["."]
-  revision = "3836d4dff27a16f008bf851c042a223d6db916d7"
+  revision = "2fb29dad7075db2caa87acb7a490d2f77bf64e53"
 
 [[projects]]
   branch = "master"
@@ -69,7 +69,7 @@
     "leveldb/table",
     "leveldb/util"
   ]
-  revision = "714f901b98fdb3aa954b4193d8cbd64a28d80cad"
+  revision = "c4c61651e9e37fa117f53c5a906d3b63090d8445"
 
 [[projects]]
   branch = "master"
@@ -79,7 +79,7 @@
     "html/atom",
     "html/charset"
   ]
-  revision = "61147c48b25b599e5b561d2e9c4f3e1ef489ca41"
+  revision = "49c15d80dfbc983ea25246ee959d970efe09ec09"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -108,6 +108,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c7900ef2d28e783625b4afa413ccc9b9162152a1c99969e35f326e050eff0072"
+  inputs-digest = "54f98d138a04fe74dcb22f5b3db9ad18c122d7aaec2be36c479f5d35a70f5bc3"
   solver-name = "gps-cdcl"
   solver-version = 1

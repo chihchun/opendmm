@@ -52,6 +52,7 @@ func Search(query string) chan MovieMeta {
 		} else {
 			glog.Info("Trying slow engines")
 			slowOut := searchWithEngines(query, []searchFunc{
+				javSearch,
 				mgsSearch,
 				opdSearch,
 				scuteSearch,

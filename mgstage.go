@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	savePageJS string = `var system = require('system');
+	mgsSavePageJS string = `var system = require('system');
 var page = require('webpage').create();
 
 page.onError = function(msg, trace) {
@@ -85,7 +85,7 @@ func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 
 func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	glog.V(2).Info("Search page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
+	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(mgsSavePageJS, false))
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
@@ -117,7 +117,7 @@ func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metac
 
 func mgsParseProductPage(urlstr string, keyword string, metach chan MovieMeta) {
 	glog.V(2).Info("Product page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(savePageJS))
+	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(mgsSavePageJS, false))
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
