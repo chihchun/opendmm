@@ -2,58 +2,75 @@
 
 
 [[projects]]
+  digest = "1:9a88883f474d09f1da61894cd8115c7f33988d6941e4f6236324c777aaff8f2c"
   name = "github.com/PuerkitoBio/goquery"
   packages = ["."]
+  pruneopts = ""
   revision = "dc2ec5c7ca4d9aae063b79b9f581dd3ea6afd2b2"
   version = "v1.4.1"
 
 [[projects]]
+  digest = "1:e3726ad6f38f710e84c8dcd0e830014de6eaeea81f28d91ae898afecc078479a"
   name = "github.com/andybalholm/cascadia"
   packages = ["."]
+  pruneopts = ""
   revision = "901648c87902174f774fac311d7f176f8647bdaa"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:c0243ca6ea596b1c547ae44d824fa42f9127af26788efaeb930898586d186c4d"
   name = "github.com/deckarep/golang-set"
   packages = ["."]
+  pruneopts = ""
   revision = "1d4478f51bed434f1dadf96dcd9b43aabac66795"
   version = "v1.7"
 
 [[projects]]
   branch = "master"
+  digest = "1:107b233e45174dbab5b1324201d092ea9448e58243ab9f039e4c0f332e121e3a"
   name = "github.com/golang/glog"
   packages = ["."]
+  pruneopts = ""
   revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
   branch = "master"
+  digest = "1:2a5888946cdbc8aa360fd43301f9fc7869d663f60d5eedae7d4e6e5e4f06f2bf"
   name = "github.com/golang/snappy"
   packages = ["."]
+  pruneopts = ""
   revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
 
 [[projects]]
   branch = "master"
+  digest = "1:54fb63818525d09f39474b5e9d762f5d9dcbaea04458e5da9e3b1069fdc52684"
   name = "github.com/heroku/x"
   packages = [
     "hmetrics",
-    "hmetrics/onload"
+    "hmetrics/onload",
   ]
+  pruneopts = ""
   revision = "1de401e1ba0e5db3e5c15d2faeee777e0b685700"
 
 [[projects]]
   branch = "master"
+  digest = "1:3c313a3121f4e3958c5df665723d6ce25adbd664c3c681e7ccd9828ee9e168f3"
   name = "github.com/junzh0u/httpx"
   packages = ["."]
+  pruneopts = ""
   revision = "2fb29dad7075db2caa87acb7a490d2f77bf64e53"
 
 [[projects]]
   branch = "master"
+  digest = "1:f8c822d75d9778c8815b511abff98211edd2867d9537924d35ef4909e3b6272d"
   name = "github.com/junzh0u/ioutilx"
   packages = ["."]
+  pruneopts = ""
   revision = "f6da07765239fa8b0fd63adc3a3a6a5699c162d9"
 
 [[projects]]
   branch = "master"
+  digest = "1:3ec9ff608353f8176fe35b526e860fba94eafd055aa218505296562b812f3e2a"
   name = "github.com/syndtr/goleveldb"
   packages = [
     "leveldb",
@@ -67,21 +84,25 @@
     "leveldb/opt",
     "leveldb/storage",
     "leveldb/table",
-    "leveldb/util"
+    "leveldb/util",
   ]
+  pruneopts = ""
   revision = "c4c61651e9e37fa117f53c5a906d3b63090d8445"
 
 [[projects]]
   branch = "master"
+  digest = "1:b970d5e8b11b4c8927a06298566eb8daf66a009702688b4142cc2a961e374e91"
   name = "golang.org/x/net"
   packages = [
     "html",
     "html/atom",
-    "html/charset"
+    "html/charset",
   ]
-  revision = "49c15d80dfbc983ea25246ee959d970efe09ec09"
+  pruneopts = ""
+  revision = "f4c29de78a2a91c00474a2e689954305c350adf9"
 
 [[projects]]
+  digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
   name = "golang.org/x/text"
   packages = [
     "encoding",
@@ -100,14 +121,22 @@
     "language",
     "runes",
     "transform",
-    "unicode/cldr"
+    "unicode/cldr",
   ]
+  pruneopts = ""
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "54f98d138a04fe74dcb22f5b3db9ad18c122d7aaec2be36c479f5d35a70f5bc3"
+  input-imports = [
+    "github.com/PuerkitoBio/goquery",
+    "github.com/deckarep/golang-set",
+    "github.com/golang/glog",
+    "github.com/heroku/x/hmetrics/onload",
+    "github.com/junzh0u/httpx",
+    "github.com/syndtr/goleveldb/leveldb",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,6 +1,3 @@
 [metadata.heroku]
   root-package = "github.com/junzh0u/opendmm"
   install = "./cmd/..."
-[[constraint]]
-  branch = "master"
-  name = "github.com/cardigann/go-cloudflare-scraper"
