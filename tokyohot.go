@@ -2,7 +2,6 @@ package opendmm
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
+	"github.com/junzh0u/httpx"
 )
 
 func tkhSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
@@ -45,11 +45,11 @@ func tkhGuessFull(query string) mapset.Set {
 func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
 	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
-		"http://www.tokyo-hot.com/product/?q=%s",
+		"https://www.tokyo-hot.com/product/?q=%s",
 		url.QueryEscape(keyword),
 	)
 	glog.V(2).Info("Search page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, http.Get)
+	doc, err := newDocumentInUTF8(urlstr, httpx.GetInsecure)
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
@@ -71,7 +71,7 @@ func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
 
 func tkhParse(urlstr string, metach chan MovieMeta) {
 	glog.V(2).Info("Product page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, http.Get)
+	doc, err := newDocumentInUTF8(urlstr, httpx.GetInsecure)
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return

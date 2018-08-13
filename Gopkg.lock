@@ -54,11 +54,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3c313a3121f4e3958c5df665723d6ce25adbd664c3c681e7ccd9828ee9e168f3"
+  digest = "1:5844044634935ff286a39a893bd9b821cd158e774ede8a1a29e78ab011de9cb5"
   name = "github.com/junzh0u/httpx"
   packages = ["."]
   pruneopts = ""
-  revision = "2fb29dad7075db2caa87acb7a490d2f77bf64e53"
+  revision = "2ff8733159c9181707417417c40ff4c302926816"
 
 [[projects]]
   branch = "master"
@@ -91,7 +91,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b970d5e8b11b4c8927a06298566eb8daf66a009702688b4142cc2a961e374e91"
+  digest = "1:98219b20d296a0031fdb434d30ca6e109623a09530a76cf57e41c94bd1e391a0"
   name = "golang.org/x/net"
   packages = [
     "html",
@@ -99,7 +99,7 @@
     "html/charset",
   ]
   pruneopts = ""
-  revision = "f4c29de78a2a91c00474a2e689954305c350adf9"
+  revision = "c39426892332e1bb5ec0a434a079bf82f5d30c54"
 
 [[projects]]
   digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
