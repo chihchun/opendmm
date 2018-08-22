@@ -3,9 +3,14 @@ package opendmm
 import (
 	"sync"
 	"testing"
+
+	"github.com/benbjohnson/phantomjs"
 )
 
-func TestSearch(t *testing.T) {
+func TestOpendmmSearch(t *testing.T) {
+	phantomjs.DefaultProcess.Open()
+	defer phantomjs.DefaultProcess.Close()
+
 	queries := []string{
 		"SDDE-201",
 		"200GANA-894",

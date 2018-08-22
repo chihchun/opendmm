@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/benbjohnson/phantomjs"
 	"github.com/golang/glog"
 	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/libredmm/opendmm"
@@ -57,6 +58,9 @@ func guessHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	phantomjs.DefaultProcess.Open()
+	defer phantomjs.DefaultProcess.Close()
+
 	port := os.Getenv("PORT")
 
 	flag.Set("stderrthreshold", "FATAL")

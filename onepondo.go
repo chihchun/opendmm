@@ -2,6 +2,7 @@ package opendmm
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -58,7 +59,7 @@ func opdSearchKeyword(keyword string, metach chan MovieMeta) {
 
 func opdParse(urlstr string, keyword string, metach chan MovieMeta) {
 	glog.V(2).Info("Product page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetFullPage)
+	doc, err := newDocument(urlstr, httpx.GetContentViaPhantomJS([]*http.Cookie{&mgsCookie}, 0, "<body", ""))
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return

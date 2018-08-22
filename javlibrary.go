@@ -2,8 +2,10 @@ package opendmm
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/junzh0u/httpx"
 
@@ -11,32 +13,15 @@ import (
 	"github.com/golang/glog"
 )
 
-const (
-	javSavePageJS string = `webpage = require('webpage');
-system = require('system');
-
-page = webpage.create();
-url = system.args[1];
-
-page.settings.userAgent = 'Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0';
-
-phantom.addCookie({
-	'name': 'over18',
-	'value': '18',
-	'domain': 'www.javlibrary.com',
-	'path': '/',
-	'httponly': false,
-	'secure': false,
-	'expires': (new Date()).getTime() + (1000 * 60 * 60)
-});
-
-page.open(url, function (status) {
-	setTimeout(function () {
-		console.log(page.content);
-		phantom.exit()
-	}, 6000);
-});;`
-)
+var javCookie = http.Cookie{
+	Name:     "over18",
+	Value:    "18",
+	Domain:   "www.javlibrary.com",
+	Path:     "/",
+	HttpOnly: false,
+	Secure:   false,
+	Expires:  time.Now().Add(1000 * time.Hour),
+}
 
 func javSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := dmmGuess(query)
@@ -60,7 +45,7 @@ func javSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 
 func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	glog.V(2).Info("Product/Search page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(javSavePageJS, true))
+	doc, err := newDocument(urlstr, httpx.GetContentViaPhantomJS([]*http.Cookie{&javCookie}, 6*time.Second, "", "Checking your browser before accessing"))
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return

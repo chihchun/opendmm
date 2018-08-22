@@ -10,6 +10,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/deckarep/golang-set"
 	"github.com/golang/glog"
+	"github.com/junzh0u/httpx"
 )
 
 func heyzoSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
@@ -57,7 +58,7 @@ func heyzoSearchKeyword(keyword string, metach chan MovieMeta) {
 
 func heyzoParse(urlstr string, keyword string, metach chan MovieMeta) {
 	glog.V(2).Info("Product page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, http.Get)
+	doc, err := newDocument(urlstr, httpx.GetContentInUTF8(http.Get))
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return

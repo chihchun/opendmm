@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/benbjohnson/phantomjs"
 	"github.com/golang/glog"
 	"github.com/libredmm/opendmm"
 )
@@ -26,6 +27,9 @@ func search(query string, timeout time.Duration) {
 }
 
 func main() {
+	phantomjs.DefaultProcess.Open()
+	defer phantomjs.DefaultProcess.Close()
+
 	flag.Set("stderrthreshold", "FATAL")
 	timeout := flag.Duration("timeout", 60*time.Second, "timeout")
 	flag.Parse()

@@ -49,7 +49,7 @@ func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
 		url.QueryEscape(keyword),
 	)
 	glog.V(2).Info("Search page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetInsecure)
+	doc, err := newDocument(urlstr, httpx.GetContentInUTF8(httpx.GetInsecure))
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
@@ -71,7 +71,7 @@ func tkhSearchKeyword(keyword string, metach chan MovieMeta) {
 
 func tkhParse(urlstr string, metach chan MovieMeta) {
 	glog.V(2).Info("Product page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetInsecure)
+	doc, err := newDocument(urlstr, httpx.GetContentInUTF8(httpx.GetInsecure))
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return

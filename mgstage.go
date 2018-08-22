@@ -2,10 +2,12 @@ package opendmm
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/deckarep/golang-set"
@@ -13,29 +15,15 @@ import (
 	"github.com/junzh0u/httpx"
 )
 
-const (
-	mgsSavePageJS string = `var system = require('system');
-var page = require('webpage').create();
-
-page.onError = function(msg, trace) {
-	// do nothing
-};
-
-phantom.addCookie({
-  'name'     : 'adc',
-  'value'    : '1',
-  'domain'   : '.mgstage.com',
-  'path'     : '/',
-  'httponly' : false,
-  'secure'   : false,
-  'expires'  : (new Date()).getTime() + (1000 * 60 * 60)
-});
-
-page.open(system.args[1], function(status) {
-  console.log(page.content);
-  phantom.exit();
-});`
-)
+var mgsCookie = http.Cookie{
+	Name:     "adc",
+	Value:    "1",
+	Domain:   ".mgstage.com",
+	Path:     "/",
+	HttpOnly: false,
+	Secure:   false,
+	Expires:  time.Now().Add(1000 * time.Hour),
+}
 
 func mgsSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	keywords := mgsGuess(query)
@@ -85,7 +73,7 @@ func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 
 func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	glog.V(2).Info("Search page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(mgsSavePageJS, false))
+	doc, err := newDocument(urlstr, httpx.GetContentViaPhantomJS([]*http.Cookie{&mgsCookie}, 0, "center_column", ""))
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
@@ -117,7 +105,7 @@ func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metac
 
 func mgsParseProductPage(urlstr string, keyword string, metach chan MovieMeta) {
 	glog.V(2).Info("Product page: ", urlstr)
-	doc, err := newDocumentInUTF8(urlstr, httpx.GetWithPhantomJS(mgsSavePageJS, false))
+	doc, err := newDocument(urlstr, httpx.GetContentViaPhantomJS([]*http.Cookie{&mgsCookie}, 0, "center_column", ""))
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
