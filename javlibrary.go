@@ -45,7 +45,7 @@ func javSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 
 func javParse(urlstr string, keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	glog.V(2).Info("Product/Search page: ", urlstr)
-	doc, err := newDocument(urlstr, httpx.GetContentViaPhantomJS([]*http.Cookie{&javCookie}, 6*time.Second, "", "Checking your browser before accessing"))
+	doc, err := newDocument(urlstr, httpx.GetContentViaPhantomJS([]*http.Cookie{&javCookie}, 6*time.Second, "Start of Content", "Checking your browser before accessing"))
 	if err != nil {
 		glog.V(2).Infof("Error parsing %s: %v", urlstr, err)
 		return
