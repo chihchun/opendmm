@@ -1,3 +1,10 @@
+[metadata.heroku]
+  root-package = "github.com/junzh0u/opendmm"
+  install = "./cmd/..."
+
+[prune]
+  go-tests = true
+  unused-packages = true
 
 [[constraint]]
   name = "github.com/PuerkitoBio/goquery"
@@ -22,7 +29,3 @@
 [[constraint]]
   branch = "master"
   name = "github.com/syndtr/goleveldb"
-
-[prune]
-  go-tests = true
-  unused-packages = true
