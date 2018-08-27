@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/libredmm/opendmm.svg?branch=master)](https://travis-ci.org/libredmm/opendmm)
 [![codecov](https://codecov.io/gh/libredmm/opendmm/branch/master/graph/badge.svg)](https://codecov.io/gh/libredmm/opendmm)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/libredmm/opendmm/blob/master/LICENSE)
+[![Godoc Reference](https://github.com/golang/gddo/blob/master/gddo-server/assets/status.svg)](https://godoc.org/github.com/libredmm/opendmm)
 
 This Go Librady/CLI fetches AV metadata given a code (番号).
 
