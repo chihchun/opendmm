@@ -11,16 +11,22 @@ func assertSearchable(t *testing.T, queries []string, search searchFunc) {
 		twg.Add(1)
 		go func(query string) {
 			defer twg.Done()
-			out := make(chan MovieMeta, 100)
-			wg := new(sync.WaitGroup)
-			search(query, wg, out)
-			wg.Wait()
-			close(out)
-			meta, ok := <-postprocess(out)
-			if !ok {
-				t.Errorf("%s not found", query)
-			} else {
-				t.Logf("%s -> %s %s", query, meta.Code, meta.Title)
+			for attempt, maxAttempt := 1, 5; ; attempt++ {
+				out := make(chan MovieMeta, 100)
+				wg := new(sync.WaitGroup)
+				search(query, wg, out)
+				wg.Wait()
+				close(out)
+				meta, ok := <-postprocess(out)
+				if ok {
+					t.Logf("%s -> %s %s", query, meta.Code, meta.Title)
+					break
+				}
+				if attempt < maxAttempt {
+					t.Logf("Attempt #%d failed for %s", attempt, query)
+				} else {
+					t.Fatalf("All %d attempts failed for %s", maxAttempt, query)
+				}
 			}
 		}(query)
 	}
@@ -40,7 +46,7 @@ func assertUnsearchable(t *testing.T, queries []string, search searchFunc) {
 			close(out)
 			meta, ok := <-postprocess(out)
 			if ok {
-				t.Errorf("Unexpected: %s -> %+v", query, meta)
+				t.Fatalf("Unexpected: %s -> %+v", query, meta)
 			}
 		}(query)
 	}
