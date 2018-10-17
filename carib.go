@@ -80,39 +80,29 @@ func caribParse(urlstr string, keyword string, metach chan MovieMeta) {
 		meta.ThumbnailImage = urlthumbnail.String()
 	}
 
-	meta.Title = doc.Find("#main-content > div.main-content-movieinfo > div.video-detail").Text()
-	meta.Description = doc.Find("#main-content > div.main-content-movieinfo > div.movie-comment").Text()
-	doc.Find("#main-content > div.detail-content.detail-content-gallery > ul > li > div > a").Each(
-		func(i int, a *goquery.Selection) {
-			href, ok := a.Attr("href")
-			if ok {
-				if !strings.Contains(href, "/member/") {
-					meta.SampleImages = append(meta.SampleImages, href)
-				}
-			}
-		})
+	meta.Title = doc.Find("#moviepages h1").Text()
+	meta.Description = doc.Find("#moviepages div.movie-info > p").Text()
 
-	doc.Find("#main-content > div.main-content-movieinfo > div.movie-info > dl").Each(
-		func(i int, dl *goquery.Selection) {
-			dt := dl.Find("dt")
-			if strings.Contains(dt.Text(), "出演") {
-				meta.Actresses = dl.Find("dd a").Map(
+	doc.Find("#moviepages li.movie-detail__spec").Each(
+		func(i int, li *goquery.Selection) {
+			title := li.Find("span.spec-title").Text()
+			content := li.Find("span.spec-content")
+			if strings.Contains(title, "出演") {
+				meta.Actresses = content.Find("a").Map(
 					func(i int, a *goquery.Selection) string {
 						return a.Text()
 					})
-			} else if strings.Contains(dt.Text(), "カテゴリー") {
-				meta.Categories = dl.Find("dd a").Map(
+			} else if strings.Contains(title, "販売日") || strings.Contains(title, "配信日") {
+				meta.ReleaseDate = content.Text()
+			} else if strings.Contains(title, "再生時間") {
+				meta.MovieLength = content.Text()
+			} else if strings.Contains(title, "シリーズ") {
+				meta.Series = content.Text()
+			} else if strings.Contains(title, "タグ") {
+				meta.Tags = content.Find("a").Map(
 					func(i int, a *goquery.Selection) string {
 						return a.Text()
 					})
-			} else if strings.Contains(dt.Text(), "販売日") || strings.Contains(dt.Text(), "配信日") {
-				meta.ReleaseDate = dl.Find("dd").Text()
-			} else if strings.Contains(dt.Text(), "再生時間") {
-				meta.MovieLength = dl.Find("dd").Text()
-			} else if strings.Contains(dt.Text(), "スタジオ") {
-				meta.Maker = dl.Find("dd").Text()
-			} else if strings.Contains(dt.Text(), "シリーズ") {
-				meta.Series = dl.Find("dd").Text()
 			}
 		})
 
