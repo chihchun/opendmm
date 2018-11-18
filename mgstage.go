@@ -80,7 +80,7 @@ func mgsParseSearchPage(keyword string, urlstr string, wg *sync.WaitGroup, metac
 	}
 
 	urlbase, err := url.Parse(urlstr)
-	doc.Find("ul > li > p.title > a").Each(
+	doc.Find("#center_column > div.all_search_list > ul > li > a, #center_column > div.search_list > div > ul > li > a").Each(
 		func(i int, a *goquery.Selection) {
 			wg.Add(1)
 			go func(a *goquery.Selection) {
