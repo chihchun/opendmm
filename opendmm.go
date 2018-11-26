@@ -41,7 +41,6 @@ func Search(query string) chan MovieMeta {
 			caribSearch,
 			caribprSearch,
 			dmmSearch,
-			fc2Search,
 			heyzoSearch,
 			niceageSearch,
 			tkhSearch,
@@ -90,6 +89,5 @@ func Guess(query string) mapset.Set {
 	keywords = keywords.Union(opdGuessFull(query))
 	keywords = keywords.Union(tkhGuessFull(query))
 	keywords = keywords.Union(scuteGuessFull(query))
-	keywords = keywords.Union(fc2GuessFull(query))
 	return keywords
 }
