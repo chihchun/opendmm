@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 	"github.com/junzh0u/httpx"
 )
@@ -180,5 +180,9 @@ func mgsParseProductPage(urlstr string, keyword string, metach chan MovieMeta) {
 			}
 		})
 
-	metach <- meta
+	if !dmmIsCodeEqual(keyword, meta.Code) {
+		glog.V(2).Infof("Code mismatch: Expected %s, got %s", keyword, meta.Code)
+	} else {
+		metach <- meta
+	}
 }
