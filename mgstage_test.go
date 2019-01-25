@@ -14,7 +14,7 @@ func TestMgstage(t *testing.T) {
 		"SIRO-1715",
 		"200GANA-894",
 		"259LUXU-011",
-		"3DSVR-0200",
+		"3DSVR-200",
 	}
 	assertSearchable(t, queries, mgsSearch)
 }

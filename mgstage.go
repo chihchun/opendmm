@@ -41,7 +41,10 @@ func mgsGuess(query string) mapset.Set {
 	matches := re.FindAllStringSubmatch(query, -1)
 	keywords := mapset.NewSet()
 	for _, match := range matches {
-		keywords.Add(fmt.Sprintf("%s-%s", strings.ToUpper(match[1]), match[2]))
+		series := strings.ToUpper(match[1])
+		num := match[2]
+		keywords.Add(fmt.Sprintf("%s-%s", series, num))
+		keywords.Add(fmt.Sprintf("%s-%04s", series, num))
 	}
 	return keywords
 }
