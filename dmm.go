@@ -153,7 +153,7 @@ func dmmParse(urlstr string, keyword string, metach chan MovieMeta) {
 }
 
 func dmmParseCode(code string) string {
-	re := regexp.MustCompile("(?i)([a-z]+)(\\d+)")
+	re := regexp.MustCompile("(?i)((?:3d|2d|[a-z])+)(\\d+)")
 	m := re.FindStringSubmatch(code)
 	if m != nil {
 		return fmt.Sprintf("%s-%s", strings.ToUpper(m[1]), m[2])
