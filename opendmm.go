@@ -3,8 +3,7 @@ package opendmm
 import (
 	"sync"
 
-	"github.com/deckarep/golang-set"
-	"github.com/golang/glog"
+	mapset "github.com/deckarep/golang-set"
 )
 
 // MovieMeta contains meta data of movie
@@ -36,7 +35,7 @@ func Search(query string) chan MovieMeta {
 	out := make(chan MovieMeta)
 	go func(out chan MovieMeta) {
 		defer close(out)
-		fastOut := searchWithEngines(query, []searchFunc{
+		batches := [][]searchFunc{[]searchFunc{
 			aveSearch,
 			caribSearch,
 			caribprSearch,
@@ -44,21 +43,20 @@ func Search(query string) chan MovieMeta {
 			heyzoSearch,
 			niceageSearch,
 			tkhSearch,
-		})
-		meta, ok := <-fastOut
-		if ok {
-			out <- meta
-		} else {
-			glog.Info("Trying slow engines")
-			slowOut := searchWithEngines(query, []searchFunc{
-				javSearch,
-				mgsSearch,
-				opdSearch,
-				scuteSearch,
-			})
-			meta, ok := <-slowOut
+		}, []searchFunc{
+			javSearch,
+			mgsSearch,
+			opdSearch,
+			scuteSearch,
+		}, []searchFunc{
+			dmmFuzzySearch,
+		}}
+		for _, engines := range batches {
+			batchOut := searchWithEngines(query, engines)
+			meta, ok := <-batchOut
 			if ok {
 				out <- meta
+				break
 			}
 		}
 	}(out)
