@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/golang/glog"
 	"github.com/junzh0u/httpx"
 )
@@ -25,7 +26,7 @@ var mgsCookie = http.Cookie{
 }
 
 func mgsSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
-	keywords := dmmGuess(query)
+	keywords := mgsGuess(query)
 	for keyword := range keywords.Iter() {
 		wg.Add(1)
 		go func(keyword string) {
@@ -33,6 +34,19 @@ func mgsSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 			mgsSearchKeyword(keyword, wg, metach)
 		}(keyword.(string))
 	}
+}
+
+func mgsGuess(query string) mapset.Set {
+	re := regexp.MustCompile("(?i)([a-z0-9]{2,7}?)-?(\\d{2,5})")
+	matches := re.FindAllStringSubmatch(query, -1)
+	keywords := mapset.NewSet()
+	for _, match := range matches {
+		series := strings.ToUpper(match[1])
+		num := match[2]
+		keywords.Add(fmt.Sprintf("%s-%s", series, num))
+		keywords.Add(fmt.Sprintf("%s-%04s", series, num))
+	}
+	return keywords
 }
 
 func mgsSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta) {

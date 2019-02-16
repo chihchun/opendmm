@@ -26,9 +26,12 @@ func dmmSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 	}
 }
 
+func dmmRe() *regexp.Regexp {
+	return regexp.MustCompile("(?i)((?:3d|2d|s2|[a-z]){1,7}?)[-_]?(0*(\\d{2,5}))")
+}
+
 func dmmGuess(query string) mapset.Set {
-	re := regexp.MustCompile("(?i)([a-z0-9]{1,7}?)[-_]?(0*(\\d{2,5}))")
-	matches := re.FindAllStringSubmatch(query, -1)
+	matches := dmmRe().FindAllStringSubmatch(query, -1)
 	keywords := mapset.NewSet()
 	for _, match := range matches {
 		series := strings.ToUpper(match[1])
@@ -41,9 +44,8 @@ func dmmGuess(query string) mapset.Set {
 }
 
 func dmmIsCodeEqual(lcode, rcode string) bool {
-	re := regexp.MustCompile("(?i)([a-z]+)-(\\d+)")
-	lmeta := re.FindStringSubmatch(lcode)
-	rmeta := re.FindStringSubmatch(rcode)
+	lmeta := dmmRe().FindStringSubmatch(lcode)
+	rmeta := dmmRe().FindStringSubmatch(rcode)
 	if lmeta == nil || rmeta == nil {
 		return false
 	}
@@ -67,7 +69,9 @@ func dmmSearchKeyword(keyword string, wg *sync.WaitGroup, metach chan MovieMeta)
 	glog.Info("Keyword: ", keyword)
 	urlstr := fmt.Sprintf(
 		"http://www.dmm.co.jp/search/=/searchstr=%s",
-		url.QueryEscape(keyword),
+		url.QueryEscape(
+			regexp.MustCompile("(?i)[a-z].*").FindString(keyword),
+		),
 	)
 	glog.V(2).Info("Search page: ", urlstr)
 	doc, err := newDocument(urlstr, httpx.GetContentInUTF8(http.Get))
