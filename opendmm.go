@@ -37,17 +37,11 @@ func Search(query string) chan MovieMeta {
 		defer close(out)
 		batches := [][]searchFunc{[]searchFunc{
 			aveSearch,
-			caribSearch,
-			caribprSearch,
 			dmmSearch,
-			heyzoSearch,
 			niceageSearch,
-			tkhSearch,
 		}, []searchFunc{
 			javSearch,
 			mgsSearch,
-			opdSearch,
-			scuteSearch,
 		}}
 		for _, engines := range batches {
 			batchOut := searchWithEngines(query, engines)
@@ -78,13 +72,7 @@ func searchWithEngines(query string, engines []searchFunc) chan MovieMeta {
 func Guess(query string) mapset.Set {
 	keywords := mapset.NewSet()
 	keywords = keywords.Union(aveGuess(query))
-	keywords = keywords.Union(caribGuessFull(query))
-	keywords = keywords.Union(caribprGuessFull(query))
 	keywords = keywords.Union(dmmGuess(query))
-	keywords = keywords.Union(heyzoGuessFull(query))
 	keywords = keywords.Union(mgsGuess(query))
-	keywords = keywords.Union(opdGuessFull(query))
-	keywords = keywords.Union(tkhGuessFull(query))
-	keywords = keywords.Union(scuteGuessFull(query))
 	return keywords
 }
