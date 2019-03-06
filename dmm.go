@@ -27,7 +27,7 @@ func dmmSearch(query string, wg *sync.WaitGroup, metach chan MovieMeta) {
 }
 
 func dmmRe() *regexp.Regexp {
-	return regexp.MustCompile("(?i)((?:3d|2d|s2|[a-z]){1,7}?)[-_]?(0*(\\d{2,5}))")
+	return regexp.MustCompile("(?i)((?:t28|(?:3d|2d|s2|[a-z]){1,7}?))[-_]?(0*(\\d{2,5}))")
 }
 
 func dmmGuess(query string) mapset.Set {
