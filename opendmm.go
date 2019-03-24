@@ -41,6 +41,8 @@ func Search(query string) chan MovieMeta {
 		}, []searchFunc{
 			javSearch,
 			mgsSearch,
+		}, []searchFunc{
+			fc2Search,
 		}}
 		for _, engines := range batches {
 			batchOut := searchWithEngines(query, engines)
@@ -73,5 +75,6 @@ func Guess(query string) mapset.Set {
 	keywords = keywords.Union(aveGuess(query))
 	keywords = keywords.Union(dmmGuess(query))
 	keywords = keywords.Union(mgsGuess(query))
+	keywords = keywords.Union(fc2Guess(query))
 	return keywords
 }
